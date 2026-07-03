@@ -3,12 +3,5 @@
   "owner": {
     "name": "sgz"
   },
-  "plugins": [
-    {
-      "name": "calling-deliver-operate-master",
-      "source": "./plugins/calling-deliver-operate-master",
-      "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
-      "tags": []
-    }
-  ]
+  "plugins": []
 }
