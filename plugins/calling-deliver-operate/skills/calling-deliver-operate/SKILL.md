@@ -116,7 +116,3 @@ POST /api/ai-auth/device/token
 | 用 GET / form 提交 | 全部 `POST` + JSON body |
 | 误判成功 | 看 `code == "0000"`，不是 HTTP 200 就算成功 |
 | 查订单不带时间范围 | **必须带 `createTimeLeft`+`createTimeRight`**，否则脚本拒绝、也避免拉爆全量 |
-
-## 注意
-
-后端 `ai-auth` 接口为新增实现，部署前需确认已上线且在各环境 `anon-url` 放行（`/api/ai-auth/device/code`、`/device/token`、`/revoke` 匿名；`/bind` 需登录）。接口契约见仓库 `deliver-operator/docs/superpowers/specs/2026-06-17-ai-device-auth-design.md`。
