@@ -10,6 +10,13 @@
       "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
       "tags": [],
       "version": "1.0.1"
+    },
+    {
+      "name": "calling-deliver-operate0000",
+      "source": "./plugins/calling-deliver-operate0000",
+      "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
+      "tags": [],
+      "version": "1.0.0"
     }
   ]
 }
