@@ -1,0 +1,16 @@
+{
+  "repos": [
+    {
+      "id": "obra_superpowers-marketplace",
+      "source": "obra/superpowers-marketplace",
+      "url": "https://github.com/obra/superpowers-marketplace.git",
+      "addedAt": "2026-07-04T07:15:39.053Z"
+    },
+    {
+      "id": "nextlevelbuilder_ui-ux-pro-max-skill",
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
+      "addedAt": "2026-07-05T03:49:21.002Z"
+    }
+  ]
+}
