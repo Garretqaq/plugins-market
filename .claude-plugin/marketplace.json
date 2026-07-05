@@ -69,6 +69,14 @@
       "tags": [],
       "version": "4.8.4",
       "origin": "DietrichGebert/ponytail"
+    },
+    {
+      "name": "codex",
+      "source": "./plugins/codex",
+      "description": "Use Codex from Claude Code to review code or delegate tasks.",
+      "tags": [],
+      "version": "1.0.5",
+      "origin": "openai/codex-plugin-cc"
     }
   ]
 }
