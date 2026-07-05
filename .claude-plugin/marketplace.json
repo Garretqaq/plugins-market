@@ -85,6 +85,14 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "anthropics/claude-plugins-official"
+    },
+    {
+      "name": "github",
+      "source": "./plugins/github",
+      "description": "Official GitHub MCP server for repository management. Create issues, manage pull requests, review code, search repositories, and interact with GitHub's full API directly from Claude Code.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "anthropics/claude-plugins-official"
     }
   ]
 }
