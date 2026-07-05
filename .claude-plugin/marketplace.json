@@ -109,6 +109,14 @@
       "tags": [],
       "version": "1.0.1",
       "origin": "anthropics/claude-plugins-official"
+    },
+    {
+      "name": "auth0",
+      "source": "./plugins/auth0",
+      "description": "Auth0 skills for quickstarts, migration, major version upgrades, MFA, branding, custom domains, Advanced Custom Universal Login (ACUL) screen generation, and framework-specific SDK integrations for React, Next.js, Vue, Nuxt, Angular, Express, Fastify, FastAPI, Flask, Go, Spring Boot, Java MVC, Swift, Android, Flutter, Flutter Web, ASP.NET Core, React Native, Expo, Ionic React (Capacitor), Ionic Angular (Capacitor), and Ionic Vue (Capacitor).",
+      "tags": [],
+      "version": "1.1.0",
+      "origin": "https://github.com/auth0/agent-skills.git"
     }
   ]
 }
