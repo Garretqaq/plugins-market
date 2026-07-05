@@ -133,6 +133,14 @@
       "tags": [],
       "version": "2.2.68",
       "origin": "https://github.com/figma/mcp-server-guide.git"
+    },
+    {
+      "name": "ralph-loop",
+      "source": "./plugins/ralph-loop",
+      "description": "Continuous self-referential AI loops for interactive iterative development, implementing the Ralph Wiggum technique. Run Claude in a while-true loop with the same prompt until task completion.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "anthropics/claude-plugins-official"
     }
   ]
 }
