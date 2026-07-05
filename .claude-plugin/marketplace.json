@@ -93,6 +93,14 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "anthropics/claude-plugins-official"
+    },
+    {
+      "name": "code-review",
+      "source": "./plugins/code-review",
+      "description": "Automated code review for pull requests using multiple specialized agents with confidence-based scoring",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "anthropics/claude-plugins-official"
     }
   ]
 }
