@@ -163,6 +163,20 @@
       ],
       "version": "1.0.0",
       "origin": "https://github.com/Fokkyp/SoftwareCopyright-Skill"
+    },
+    {
+      "name": "taste-skill",
+      "source": "./plugins/taste-skill",
+      "description": "Frontend design taste skills including brutalist, minimalist, soft, redesign, stitch, and more",
+      "tags": [
+        "skills",
+        "frontend",
+        "design",
+        "taste",
+        "ui"
+      ],
+      "version": "1.0.0",
+      "origin": "https://github.com/Leonxlnx/taste-skill"
     }
   ]
 }
