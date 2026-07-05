@@ -77,6 +77,14 @@
       "tags": [],
       "version": "1.0.5",
       "origin": "openai/codex-plugin-cc"
+    },
+    {
+      "name": "context7",
+      "source": "./plugins/context7",
+      "description": "Upstash Context7 MCP server for up-to-date documentation lookup. Pull version-specific documentation and code examples directly from source repositories into your LLM context.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "anthropics/claude-plugins-official"
     }
   ]
 }
