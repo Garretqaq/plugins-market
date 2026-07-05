@@ -17,6 +17,12 @@
       "source": "DietrichGebert/ponytail",
       "url": "https://github.com/DietrichGebert/ponytail.git",
       "addedAt": "2026-07-05T07:27:47.216Z"
+    },
+    {
+      "id": "jarrodwatts_claude-hud",
+      "source": "jarrodwatts/claude-hud",
+      "url": "https://github.com/jarrodwatts/claude-hud.git",
+      "addedAt": "2026-07-05T07:29:55.943Z"
     }
   ]
 }
