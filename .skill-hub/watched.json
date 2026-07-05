@@ -23,6 +23,12 @@
       "source": "jarrodwatts/claude-hud",
       "url": "https://github.com/jarrodwatts/claude-hud.git",
       "addedAt": "2026-07-05T07:29:55.943Z"
+    },
+    {
+      "id": "openai_codex-plugin-cc",
+      "source": "openai/codex-plugin-cc",
+      "url": "https://github.com/openai/codex-plugin-cc.git",
+      "addedAt": "2026-07-05T10:51:08.594Z"
     }
   ]
 }
