@@ -101,6 +101,14 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "anthropics/claude-plugins-official"
+    },
+    {
+      "name": "code-simplifier",
+      "source": "./plugins/code-simplifier",
+      "description": "Agent that simplifies and refines code for clarity, consistency, and maintainability while preserving functionality",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "anthropics/claude-plugins-official"
     }
   ]
 }
