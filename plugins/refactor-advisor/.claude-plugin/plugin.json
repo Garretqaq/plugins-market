@@ -1,0 +1,5 @@
+{
+  "name": "refactor-advisor",
+  "description": "重构顾问 - 识别代码坏味道并提供重构方案",
+  "version": "1.0.0"
+}
