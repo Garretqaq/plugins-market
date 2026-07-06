@@ -95,6 +95,20 @@
       "origin": "nextlevelbuilder/ui-ux-pro-max-skill"
     },
     {
+      "name": "taste-skill",
+      "source": "./plugins/taste-skill",
+      "description": "Frontend design taste skills including brutalist, minimalist, soft, redesign, stitch, and more",
+      "tags": [
+        "skills",
+        "frontend",
+        "design",
+        "taste",
+        "ui"
+      ],
+      "version": "1.0.0",
+      "origin": "https://github.com/Leonxlnx/taste-skill"
+    },
+    {
       "name": "api-tester",
       "source": "./plugins/api-tester",
       "description": "API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试",
@@ -211,20 +225,6 @@
       ],
       "version": "1.0.0",
       "origin": "https://github.com/Fokkyp/SoftwareCopyright-Skill"
-    },
-    {
-      "name": "taste-skill",
-      "source": "./plugins/taste-skill",
-      "description": "Frontend design taste skills including brutalist, minimalist, soft, redesign, stitch, and more",
-      "tags": [
-        "skills",
-        "frontend",
-        "design",
-        "taste",
-        "ui"
-      ],
-      "version": "1.0.0",
-      "origin": "https://github.com/Leonxlnx/taste-skill"
     },
     {
       "name": "perf-profiler",
