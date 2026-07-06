@@ -1,0 +1,5 @@
+{
+  "name": "api-tester",
+  "description": "API 自动化测试 - OpenAPI 解析、测试用例生成、集成测试",
+  "version": "1.0.0"
+}
