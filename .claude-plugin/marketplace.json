@@ -95,6 +95,14 @@
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     },
     {
+      "name": "refactor-advisor",
+      "source": "./plugins/refactor-advisor",
+      "description": "重构顾问 - 识别代码坏味道并提供重构方案",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
+    },
+    {
       "name": "context7",
       "source": "./plugins/context7",
       "description": "Upstash Context7 MCP server for up-to-date documentation lookup. Pull version-specific documentation and code examples directly from source repositories into your LLM context.",
@@ -217,14 +225,6 @@
       ],
       "version": "1.0.0",
       "origin": "https://github.com/Leonxlnx/taste-skill"
-    },
-    {
-      "name": "refactor-advisor",
-      "source": "./plugins/refactor-advisor",
-      "description": "重构顾问 - 识别代码坏味道并提供重构方案",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     },
     {
       "name": "perf-profiler",
