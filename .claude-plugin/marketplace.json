@@ -5,14 +5,6 @@
   },
   "plugins": [
     {
-      "name": "calling-deliver-operate",
-      "source": "./plugins/calling-deliver-operate",
-      "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
-      "tags": [],
-      "version": "1.0.2",
-      "displayName": "线下交付运营端调用"
-    },
-    {
       "name": "claude-hud",
       "source": "./plugins/claude-hud",
       "description": "Real-time statusline HUD for Claude Code - context health, tool activity, agent tracking, and todo progress",
@@ -45,6 +37,38 @@
       "origin": "https://github.com/obra/superpowers.git"
     },
     {
+      "name": "superpowers-zh",
+      "source": "./plugins/superpowers-zh",
+      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
+      "tags": [
+        "skills",
+        "tdd",
+        "debugging",
+        "chinese",
+        "中文",
+        "best-practices",
+        "workflows"
+      ],
+      "version": "1.6.0",
+      "origin": "https://github.com/jnMetaCode/superpowers-zh"
+    },
+    {
+      "name": "zh-readme",
+      "source": "./plugins/zh-readme",
+      "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
+    },
+    {
+      "name": "zh-code-reviewer",
+      "source": "./plugins/zh-code-reviewer",
+      "description": "中文代码审查专家 - 生成详细的中文代码审查报告",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
+    },
+    {
       "name": "ui-ux-pro-max",
       "source": "./plugins/ui-ux-pro-max",
       "description": "UI/UX design intelligence. 84 styles, 161 palettes, 73 font pairings, 25 charts, 17 stacks (React, Next.js, Vue, Nuxt.js, Nuxt UI, Svelte, Astro, SwiftUI, React Native, Flutter, Tailwind, shadcn/ui, Jetpack Compose, Angular, Laravel, JavaFX, Three.js). Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, mobile app. Elements: button, modal, navbar, sidebar, card, table, form, chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, flat design. Topics: color palette, accessibility, animation, layout, typography, font pairing, spacing, hover, shadow, gradient.",
@@ -69,6 +93,14 @@
       "tags": [],
       "version": "4.8.4",
       "origin": "DietrichGebert/ponytail"
+    },
+    {
+      "name": "humanizer-zh",
+      "source": "./plugins/humanizer-zh",
+      "description": "去除文本中的 AI 生成痕迹。适用于编辑或审阅文本，使其听起来更自然、更像人类书写。\n基于维基百科的\"AI 写作特征\"综合指南。检测并修复以下模式：夸大的象征意义、\n宣传性语言、以 -ing 结尾的肤浅分析、模糊的归因、破折号过度使用、三段式法则、\nAI 词汇、否定式排比、过多的连接性短语。\n",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "op7418/humanizer-zh"
     },
     {
       "name": "codex",
@@ -187,22 +219,6 @@
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     },
     {
-      "name": "zh-code-reviewer",
-      "source": "./plugins/zh-code-reviewer",
-      "description": "中文代码审查专家 - 生成详细的中文代码审查报告",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
-    },
-    {
-      "name": "zh-readme",
-      "source": "./plugins/zh-readme",
-      "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
-    },
-    {
       "name": "refactor-advisor",
       "source": "./plugins/refactor-advisor",
       "description": "重构顾问 - 识别代码坏味道并提供重构方案",
@@ -239,28 +255,12 @@
       "origin": "https://github.com/affaan-m/ECC"
     },
     {
-      "name": "superpowers-zh",
-      "source": "./plugins/superpowers-zh",
-      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
-      "tags": [
-        "skills",
-        "tdd",
-        "debugging",
-        "chinese",
-        "中文",
-        "best-practices",
-        "workflows"
-      ],
-      "version": "1.6.0",
-      "origin": "https://github.com/jnMetaCode/superpowers-zh"
-    },
-    {
-      "name": "humanizer-zh",
-      "source": "./plugins/humanizer-zh",
-      "description": "去除文本中的 AI 生成痕迹。适用于编辑或审阅文本，使其听起来更自然、更像人类书写。\n基于维基百科的\"AI 写作特征\"综合指南。检测并修复以下模式：夸大的象征意义、\n宣传性语言、以 -ing 结尾的肤浅分析、模糊的归因、破折号过度使用、三段式法则、\nAI 词汇、否定式排比、过多的连接性短语。\n",
+      "name": "calling-deliver-operate",
+      "source": "./plugins/calling-deliver-operate",
+      "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
       "tags": [],
-      "version": "1.0.0",
-      "origin": "op7418/humanizer-zh"
+      "version": "1.0.2",
+      "displayName": "线下交付运营端调用"
     }
   ]
 }
