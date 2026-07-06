@@ -217,6 +217,26 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
+    },
+    {
+      "name": "ecc",
+      "source": "./plugins/ecc",
+      "description": "Harness-native ECC plugin for engineering teams - 67 agents, 277 skills, 93 legacy command shims, reusable hooks, rules, MCP conventions, and operator workflows for Claude Code plus adjacent agent harnesses",
+      "tags": [
+        "claude-code",
+        "agents",
+        "skills",
+        "hooks",
+        "rules",
+        "tdd",
+        "code-review",
+        "security",
+        "workflow",
+        "automation",
+        "best-practices"
+      ],
+      "version": "2.0.0",
+      "origin": "https://github.com/affaan-m/ECC"
     }
   ]
 }
