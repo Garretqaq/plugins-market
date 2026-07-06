@@ -1,0 +1,5 @@
+{
+  "name": "perf-profiler",
+  "description": "性能分析 - 识别瓶颈、生成优化建议",
+  "version": "1.0.0"
+}

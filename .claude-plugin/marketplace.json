@@ -209,6 +209,14 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
+    },
+    {
+      "name": "perf-profiler",
+      "source": "./plugins/perf-profiler",
+      "description": "性能分析 - 识别瓶颈、生成优化建议",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     }
   ]
 }
