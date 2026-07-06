@@ -237,6 +237,22 @@
       ],
       "version": "2.0.0",
       "origin": "https://github.com/affaan-m/ECC"
+    },
+    {
+      "name": "superpowers-zh",
+      "source": "./plugins/superpowers-zh",
+      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
+      "tags": [
+        "skills",
+        "tdd",
+        "debugging",
+        "chinese",
+        "中文",
+        "best-practices",
+        "workflows"
+      ],
+      "version": "1.6.0",
+      "origin": "https://github.com/jnMetaCode/superpowers-zh"
     }
   ]
 }
