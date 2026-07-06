@@ -185,6 +185,14 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
+    },
+    {
+      "name": "zh-code-reviewer",
+      "source": "./plugins/zh-code-reviewer",
+      "description": "中文代码审查专家 - 生成详细的中文代码审查报告",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     }
   ]
 }
