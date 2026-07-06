@@ -1,0 +1,5 @@
+{
+  "name": "zh-readme",
+  "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
+  "version": "1.0.0"
+}
