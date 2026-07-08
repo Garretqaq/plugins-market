@@ -253,6 +253,14 @@
       ],
       "version": "2.0.0",
       "origin": "https://github.com/affaan-m/ECC"
+    },
+    {
+      "name": "mattpocock-skills",
+      "source": "./plugins/mattpocock-skills",
+      "description": "",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/vinvcn/mattpocock-skills-zh-CN"
     }
   ]
 }
