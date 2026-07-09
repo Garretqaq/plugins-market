@@ -141,14 +141,6 @@
       "origin": "DietrichGebert/ponytail"
     },
     {
-      "name": "codex",
-      "source": "./plugins/codex",
-      "description": "Use Codex from Claude Code to review code or delegate tasks.",
-      "tags": [],
-      "version": "1.0.5",
-      "origin": "openai/codex-plugin-cc"
-    },
-    {
       "name": "github",
       "source": "./plugins/github",
       "description": "Official GitHub MCP server for repository management. Create issues, manage pull requests, review code, search repositories, and interact with GitHub's full API directly from Claude Code.",
@@ -268,6 +260,14 @@
       "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
       "tags": [],
       "version": "1.0.0"
+    },
+    {
+      "name": "codex",
+      "source": "./plugins/codex",
+      "description": "Use Codex from Claude Code to review code or delegate tasks.",
+      "tags": [],
+      "version": "1.0.6",
+      "origin": "openai/codex-plugin-cc"
     }
   ]
 }
