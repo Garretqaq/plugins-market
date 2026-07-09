@@ -268,14 +268,6 @@
       "tags": [],
       "version": "1.0.6",
       "origin": "openai/codex-plugin-cc"
-    },
-    {
-      "name": "impeccable",
-      "source": "./plugins/impeccable",
-      "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
-      "tags": [],
-      "version": "3.9.1",
-      "origin": "pbakaus/impeccable"
     }
   ]
 }
