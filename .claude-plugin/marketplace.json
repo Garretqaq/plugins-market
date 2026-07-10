@@ -276,6 +276,14 @@
       "tags": [],
       "version": "3.9.1",
       "origin": "pbakaus/impeccable"
+    },
+    {
+      "name": "frontend-design",
+      "source": "./plugins/frontend-design",
+      "description": "Frontend design skill for UI/UX implementation",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "anthropics/claude-plugins-official"
     }
   ]
 }
