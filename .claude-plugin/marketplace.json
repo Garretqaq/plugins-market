@@ -53,6 +53,14 @@
       "origin": "https://github.com/jnMetaCode/superpowers-zh"
     },
     {
+      "name": "mattpocock-skills",
+      "source": "./plugins/mattpocock-skills",
+      "description": "",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "vinvcn/mattpocock-skills-zh-CN"
+    },
+    {
       "name": "zh-readme",
       "source": "./plugins/zh-readme",
       "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
@@ -276,14 +284,6 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "anthropics/claude-plugins-official"
-    },
-    {
-      "name": "mattpocock-skills",
-      "source": "./plugins/mattpocock-skills",
-      "description": "",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "vinvcn/mattpocock-skills-zh-CN"
     }
   ]
 }
