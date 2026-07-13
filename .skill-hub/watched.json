@@ -83,6 +83,12 @@
       "source": "mattpocock/skills",
       "url": "https://github.com/mattpocock/skills.git",
       "addedAt": "2026-07-13T01:19:23.271Z"
+    },
+    {
+      "id": "vinvcn_mattpocock-skills-zh-CN",
+      "source": "vinvcn/mattpocock-skills-zh-CN",
+      "url": "https://github.com/vinvcn/mattpocock-skills-zh-CN.git",
+      "addedAt": "2026-07-13T01:22:42.527Z"
     }
   ]
 }
