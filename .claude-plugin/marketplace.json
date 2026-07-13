@@ -276,14 +276,6 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "anthropics/claude-plugins-official"
-    },
-    {
-      "name": "mattpocock-skills",
-      "source": "./plugins/mattpocock-skills",
-      "description": "",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "mattpocock/skills"
     }
   ]
 }
