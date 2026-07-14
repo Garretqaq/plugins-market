@@ -284,6 +284,20 @@
       ],
       "version": "1.7.0",
       "origin": "https://github.com/jnMetaCode/superpowers-zh"
+    },
+    {
+      "name": "caveman",
+      "source": "./plugins/caveman",
+      "description": "Ultra-compressed communication mode. Cuts 65% of output tokens (measured) while keeping full technical accuracy by speaking like a caveman.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "JuliusBrussee/caveman",
+      "exclude": [
+        "tests",
+        "docs",
+        "dist",
+        ".github"
+      ]
     }
   ]
 }
