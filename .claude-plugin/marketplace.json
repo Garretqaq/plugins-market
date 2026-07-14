@@ -235,22 +235,6 @@
       "origin": "anthropics/claude-plugins-official"
     },
     {
-      "name": "superpowers-zh",
-      "source": "./plugins/superpowers-zh",
-      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
-      "tags": [
-        "skills",
-        "tdd",
-        "debugging",
-        "chinese",
-        "中文",
-        "best-practices",
-        "workflows"
-      ],
-      "version": "1.6.1",
-      "origin": "https://github.com/jnMetaCode/superpowers-zh"
-    },
-    {
       "name": "ui-ux-pro-max",
       "source": "./plugins/ui-ux-pro-max",
       "description": "UI/UX design intelligence. Searchable local database with 84 styles, 161 palettes, 73 font pairings, 25 charts, and 17 stacks (React, Next.js, Vue, Nuxt.js, Nuxt UI, Svelte, Astro, SwiftUI, React Native, Flutter, Tailwind, shadcn/ui, Jetpack Compose, Angular, Laravel, JavaFX, Three.js). Use when designing, building, or reviewing UI: pages, components, color schemes, typography, layout, accessibility, animation, or data visualization.",
@@ -284,6 +268,22 @@
       ],
       "version": "0.4.1",
       "origin": "jarrodwatts/claude-hud"
+    },
+    {
+      "name": "superpowers-zh",
+      "source": "./plugins/superpowers-zh",
+      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
+      "tags": [
+        "skills",
+        "tdd",
+        "debugging",
+        "chinese",
+        "中文",
+        "best-practices",
+        "workflows"
+      ],
+      "version": "1.7.0",
+      "origin": "https://github.com/jnMetaCode/superpowers-zh"
     }
   ]
 }
