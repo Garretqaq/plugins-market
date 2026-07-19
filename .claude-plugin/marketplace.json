@@ -298,6 +298,14 @@
         "dist",
         ".github"
       ]
+    },
+    {
+      "name": "alphaear-deepear-lite",
+      "source": "./plugins/alphaear-deepear-lite",
+      "description": "Fetch the latest financial signals and transmission-chain analyses from DeepEar Lite. Use when the user needs immediate insights into financial market trends, stock performance factors, and reasoning from the DeepEar Lite dashboard.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/rkiding/awesome-finance-skills"
     }
   ]
 }
