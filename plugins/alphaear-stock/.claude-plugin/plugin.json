@@ -1,0 +1,5 @@
+{
+  "name": "alphaear-stock",
+  "description": "Search A-Share/HK/US finance stock tickers and retrieve finance stock price history. Use when user asks about finance stock codes, recent price changes, or specific company finance stock info.",
+  "version": "1.0.0"
+}
