@@ -306,6 +306,17 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "https://github.com/rkiding/awesome-finance-skills"
+    },
+    {
+      "name": "alphaear-stock",
+      "source": "./plugins/alphaear-stock",
+      "description": "Search A-Share/HK/US finance stock tickers and retrieve finance stock price history. Use when user asks about finance stock codes, recent price changes, or specific company finance stock info.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/rkiding/awesome-finance-skills",
+      "exclude": [
+        "tests"
+      ]
     }
   ]
 }
