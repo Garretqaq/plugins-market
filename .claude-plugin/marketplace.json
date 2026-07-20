@@ -82,6 +82,23 @@
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     },
     {
+      "name": "claude-hud",
+      "source": "./plugins/claude-hud",
+      "description": "Real-time statusline HUD for Claude Code - context health, tool activity, agent tracking, and todo progress",
+      "tags": [
+        "hud",
+        "monitoring",
+        "statusline",
+        "context",
+        "tools",
+        "agents",
+        "todos",
+        "claude-code"
+      ],
+      "version": "0.5.0",
+      "origin": "jarrodwatts/claude-hud"
+    },
+    {
       "name": "context7",
       "source": "./plugins/context7",
       "description": "Upstash Context7 MCP server for up-to-date documentation lookup. Pull version-specific documentation and code examples directly from source repositories into your LLM context.",
@@ -322,23 +339,6 @@
       "exclude": [
         "tests"
       ]
-    },
-    {
-      "name": "claude-hud",
-      "source": "./plugins/claude-hud",
-      "description": "Real-time statusline HUD for Claude Code - context health, tool activity, agent tracking, and todo progress",
-      "tags": [
-        "hud",
-        "monitoring",
-        "statusline",
-        "context",
-        "tools",
-        "agents",
-        "todos",
-        "claude-code"
-      ],
-      "version": "0.5.0",
-      "origin": "jarrodwatts/claude-hud"
     },
     {
       "name": "alphaear-signal-tracker",
