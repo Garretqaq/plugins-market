@@ -339,6 +339,17 @@
       ],
       "version": "0.5.0",
       "origin": "jarrodwatts/claude-hud"
+    },
+    {
+      "name": "alphaear-signal-tracker",
+      "source": "./plugins/alphaear-signal-tracker",
+      "description": "Track finance investment signal evolution and update logic based on new finance market information. Use when monitoring finance signals and determining if they are strengthened, weakened, or falsified.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/rkiding/awesome-finance-skills",
+      "exclude": [
+        "tests"
+      ]
     }
   ]
 }
