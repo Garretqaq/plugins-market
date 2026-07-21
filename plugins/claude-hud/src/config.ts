@@ -24,6 +24,14 @@ export type GitBranchOverflowMode = 'truncate' | 'wrap';
 export type ModelFormatMode = 'full' | 'compact' | 'short';
 export type TimeFormatMode = 'relative' | 'absolute' | 'both' | 'elapsed' | 'elapsedAndAbsolute';
 export type CustomLinePosition = 'first' | 'last';
+
+/**
+ * Controls how many directory segments of cwd are shown in the project badge.
+ *
+ *   1 | 2 | 3: Show the last N segments (e.g. 2 -> "ai_workspace/knowledge-forge")
+ *   'full':    Show the entire absolute path from root (e.g. "/Users/name/…")
+ */
+export type PathLevels = 1 | 2 | 3 | 'full';
 export type HudElement =
   | 'project'
   | 'addedDirs'
@@ -38,6 +46,34 @@ export type HudElement =
   | 'agents'
   | 'todos'
   | 'sessionTime';
+
+/**
+ * Coarse, orderable segments of the first HUD line (the identity/project
+ * line). Shared by the expanded project line and the compact session line:
+ *
+ *   model:       provider + model badge + effort (compact mode also keeps the
+ *                context bar attached to this segment)
+ *   project:     project path + added dirs + git status (kept as one segment)
+ *   advisor:     advisor model label
+ *   sessionName: session title from /rename
+ *   version:     Claude Code version
+ *   extra:       extra-cmd custom label
+ *   duration:    session duration
+ *   cost:        session cost estimate
+ *   speed:       output speed
+ *   auth:        auth method / account
+ */
+export type FirstLineSegment =
+  | 'model'
+  | 'project'
+  | 'advisor'
+  | 'sessionName'
+  | 'version'
+  | 'extra'
+  | 'duration'
+  | 'cost'
+  | 'speed'
+  | 'auth';
 
 export type AddedDirsLayout = 'inline' | 'line';
 export type HudColorName =
@@ -89,16 +125,35 @@ export const DEFAULT_MERGE_GROUPS: HudElement[][] = [
   ['context', 'usage'],
 ];
 
+const PROJECT_LINE_SEGMENTS: FirstLineSegment[] = [
+  'model',
+  'project',
+  'advisor',
+  'sessionName',
+  'version',
+  'extra',
+  'duration',
+  'cost',
+  'speed',
+  'auth',
+];
+
+// An empty order is deliberate: renderers retain their byte-for-byte native
+// order until the user opts in to moving one or more segments.
+export const DEFAULT_PROJECT_LINE_ORDER: FirstLineSegment[] = [];
+
 const KNOWN_ELEMENTS = new Set<HudElement>(DEFAULT_ELEMENT_ORDER);
+const KNOWN_FIRST_LINE_SEGMENTS = new Set<FirstLineSegment>(PROJECT_LINE_SEGMENTS);
 
 export interface HudConfig {
   language: Language;
   lineLayout: LineLayoutType;
   showSeparators: boolean;
-  pathLevels: 1 | 2 | 3;
+  pathLevels: PathLevels;
   maxWidth: number | null;
   forceMaxWidth: boolean;
   elementOrder: HudElement[];
+  projectLineOrder: FirstLineSegment[];
   gitStatus: {
     enabled: boolean;
     showDirty: boolean;
@@ -107,6 +162,11 @@ export interface HudConfig {
     branchOverflow: GitBranchOverflowMode;
     pushWarningThreshold: number;
     pushCriticalThreshold: number;
+  };
+  jjStatus: {
+    enabled: boolean;
+    showDirty: boolean;
+    showConflicts: boolean;
   };
   display: {
     showModel: boolean;
@@ -206,6 +266,7 @@ export const DEFAULT_CONFIG: HudConfig = {
   maxWidth: null,
   forceMaxWidth: false,
   elementOrder: [...DEFAULT_ELEMENT_ORDER],
+  projectLineOrder: [...DEFAULT_PROJECT_LINE_ORDER],
   gitStatus: {
     enabled: true,
     showDirty: true,
@@ -214,6 +275,11 @@ export const DEFAULT_CONFIG: HudConfig = {
     branchOverflow: 'truncate',
     pushWarningThreshold: 0,
     pushCriticalThreshold: 0,
+  },
+  jjStatus: {
+    enabled: false,
+    showDirty: true,
+    showConflicts: true,
   },
   display: {
     showModel: true,
@@ -298,8 +364,8 @@ export function getConfigPath(): string {
   return path.join(getHudPluginDir(homeDir), 'config.json');
 }
 
-function validatePathLevels(value: unknown): value is 1 | 2 | 3 {
-  return value === 1 || value === 2 || value === 3;
+function validatePathLevels(value: unknown): value is PathLevels {
+  return value === 1 || value === 2 || value === 3 || value === 'full';
 }
 
 function validateLineLayout(value: unknown): value is LineLayoutType {
@@ -401,6 +467,34 @@ function validateElementOrder(value: unknown): HudElement[] {
   return elementOrder.length > 0 ? elementOrder : [...DEFAULT_ELEMENT_ORDER];
 }
 
+// Unlike `elementOrder`, `projectLineOrder` only reorders segments. A partial
+// list is preserved as a requested prefix; each renderer appends all remaining
+// visible parts in its own existing order.
+function validateProjectLineOrder(value: unknown): FirstLineSegment[] {
+  if (!Array.isArray(value)) {
+    return [...DEFAULT_PROJECT_LINE_ORDER];
+  }
+
+  const seen = new Set<FirstLineSegment>();
+  const order: FirstLineSegment[] = [];
+
+  for (const item of value) {
+    if (typeof item !== 'string' || !KNOWN_FIRST_LINE_SEGMENTS.has(item as FirstLineSegment)) {
+      continue;
+    }
+
+    const segment = item as FirstLineSegment;
+    if (seen.has(segment)) {
+      continue;
+    }
+
+    seen.add(segment);
+    order.push(segment);
+  }
+
+  return order;
+}
+
 function validateMergeGroups(value: unknown): HudElement[][] {
   if (!Array.isArray(value)) {
     return DEFAULT_MERGE_GROUPS.map(group => [...group]);
@@ -472,7 +566,7 @@ function migrateConfig(userConfig: Partial<HudConfig> & LegacyConfig): Partial<H
       const obj = userConfig.layout as Record<string, unknown>;
       if (typeof obj.lineLayout === 'string') migrated.lineLayout = obj.lineLayout as any;
       if (typeof obj.showSeparators === 'boolean') migrated.showSeparators = obj.showSeparators;
-      if (typeof obj.pathLevels === 'number') migrated.pathLevels = obj.pathLevels as any;
+      if (typeof obj.pathLevels === 'number' || obj.pathLevels === 'full') migrated.pathLevels = obj.pathLevels as any;
     }
     delete migrated.layout;
   }
@@ -553,6 +647,7 @@ export function mergeConfig(userConfig: Partial<HudConfig>): HudConfig {
     : null;
 
   const elementOrder = validateElementOrder(migrated.elementOrder);
+  const projectLineOrder = validateProjectLineOrder(migrated.projectLineOrder);
   const forceMaxWidth = typeof (migrated as Record<string, unknown>).forceMaxWidth === 'boolean'
     ? (migrated as Record<string, unknown>).forceMaxWidth as boolean
     : DEFAULT_CONFIG.forceMaxWidth;
@@ -575,6 +670,18 @@ export function mergeConfig(userConfig: Partial<HudConfig>): HudConfig {
       : DEFAULT_CONFIG.gitStatus.branchOverflow,
     pushWarningThreshold: validateCountThreshold(migrated.gitStatus?.pushWarningThreshold),
     pushCriticalThreshold: validateCountThreshold(migrated.gitStatus?.pushCriticalThreshold),
+  };
+
+  const jjStatus = {
+    enabled: typeof migrated.jjStatus?.enabled === 'boolean'
+      ? migrated.jjStatus.enabled
+      : DEFAULT_CONFIG.jjStatus.enabled,
+    showDirty: typeof migrated.jjStatus?.showDirty === 'boolean'
+      ? migrated.jjStatus.showDirty
+      : DEFAULT_CONFIG.jjStatus.showDirty,
+    showConflicts: typeof migrated.jjStatus?.showConflicts === 'boolean'
+      ? migrated.jjStatus.showConflicts
+      : DEFAULT_CONFIG.jjStatus.showConflicts,
   };
 
   const display = {
@@ -798,7 +905,7 @@ export function mergeConfig(userConfig: Partial<HudConfig>): HudConfig {
       : DEFAULT_CONFIG.colors.barEmpty,
   };
 
-  return { language, lineLayout, showSeparators, pathLevels, maxWidth, forceMaxWidth, elementOrder, gitStatus, display, colors };
+  return { language, lineLayout, showSeparators, pathLevels, maxWidth, forceMaxWidth, elementOrder, projectLineOrder, gitStatus, jjStatus, display, colors };
 }
 
 export async function loadConfig(): Promise<HudConfig> {
