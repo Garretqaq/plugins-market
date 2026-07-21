@@ -21,19 +21,19 @@
 **步骤 2：安装插件**
 
 <details>
-<summary><strong>⚠️ Linux 用户：请先点击此处</strong></summary>
+<summary><strong>⚠️ Linux 用户：如果安装报 EXDEV 错误，请点击此处</strong></summary>
 
-在 Linux 上，`/tmp` 通常是独立的文件系统（tmpfs），这会导致插件安装失败并报错：
+在较旧的 Claude Code 版本上，`/tmp` 作为独立文件系统（tmpfs）会导致插件安装失败并报错：
 ```
 EXDEV: cross-device link not permitted
 ```
 
-**修复方法**：在安装前设置 TMPDIR：
+这个 [Claude Code 缺陷](https://github.com/anthropics/claude-code/issues/14799)已经修复——如果遇到此错误，请先升级 Claude Code。如果无法升级，可在安装前设置 TMPDIR：
 ```bash
 mkdir -p ~/.cache/tmp && TMPDIR=~/.cache/tmp claude
 ```
 
-然后在该会话中运行下面的安装命令。这是 [Claude Code 平台的限制](https://github.com/anthropics/claude-code/issues/14799)。
+然后在该会话中运行下面的安装命令。
 
 </details>
 
@@ -41,11 +41,23 @@ mkdir -p ~/.cache/tmp && TMPDIR=~/.cache/tmp claude
 /plugin install claude-hud
 ```
 
-安装完成后，重新加载插件：
+安装完成后，重新加载插件（无需重启）：
 
 ```
 /reload-plugins
 ```
+
+<details>
+<summary><strong>更喜欢在终端操作？</strong></summary>
+
+步骤 1–2 也可以在会话之外用 Claude Code CLI 完成：
+```bash
+claude plugin marketplace add jarrodwatts/claude-hud
+claude plugin install claude-hud@claude-hud
+```
+然后在会话内运行 `/reload-plugins`（或开启新会话）。
+
+</details>
 
 **步骤 3：配置状态栏**
 ```
@@ -63,9 +75,7 @@ winget install OpenJS.NodeJS.LTS
 
 </details>
 
-完成！重启 Claude Code 以加载新的 statusLine 配置，HUD 将会出现。
-
-在 Windows 上，setup 写入新的 `statusLine` 配置后，请完整重启 Claude Code。
+完成！Claude Code 会自动重新加载设置——发送下一条消息后 HUD 就会出现，无需重启。如果没有显示，请重启 Claude Code（旧版 Claude Code 需要重启才能加载 statusLine 变更）。
 
 ---
 
@@ -113,7 +123,7 @@ Claude Code → stdin JSON → claude-hud → stdout → 在终端中显示
 - 来自 Claude Code 的原生 Token 数据（非估算）
 - 适配 Claude Code 报告的上下文窗口大小，包括最新的 1M 上下文会话
 - 解析转录文件以获取工具/Agent 活动
-- 约每 300ms 更新一次
+- 在每次交互后重新渲染（新的助手消息、`/compact`、权限变更、vim 模式切换），带 300ms 防抖
 
 ---
 
@@ -153,10 +163,11 @@ Claude Code → stdin JSON → claude-hud → stdout → 在终端中显示
 |------|------|--------|------|
 | `language` | `en` \| `zh` \| `zh-Hans` \| `zh-Hant` \| `zh-TW` | `en` | HUD 标签语言。设为 `zh` 或 `zh-Hans` 启用简体中文，设为 `zh-Hant` 或 `zh-TW` 启用繁体中文 |
 | `lineLayout` | string | `expanded` | 布局：`expanded`（多行）或 `compact`（单行） |
-| `pathLevels` | 1-3 | 1 | 项目路径显示的目录层级数 |
+| `pathLevels` | 1-3 \| `full` | 1 | 项目路径显示的目录层级数，或设为 `full` 显示完整绝对路径 |
 | `maxWidth` | number \| `null` | `null` | 可选的回退宽度，仅在终端宽度检测完全失败时使用 |
 | `forceMaxWidth` | boolean | false | 当设置了 `maxWidth` 时始终使用它，即使终端宽度检测返回更小的值 |
 | `elementOrder` | string[] | `["project","context","usage","promptCache","memory","environment","tools","agents","todos","sessionTime"]` | 展开模式下元素的顺序。省略的条目在展开模式下隐藏。现有配置会保留其显式顺序直到更新 |
+| `projectLineOrder` | string[] | `[]` | 可选的首行片段前置顺序，适用于两种布局。可见性仍由 `display.show*` 控制；省略的片段保持渲染器原有顺序。例如 `["project","model"]` 会将项目和 Git 放到模型徽标之前 |
 | `display.mergeGroups` | string[][] | `[["context","usage"]]` | 展开模式下相邻时应共享一行的元素分组。设为 `[]` 可禁用合并行 |
 | `gitStatus.enabled` | boolean | true | 在 HUD 中显示 git 分支 |
 | `gitStatus.showDirty` | boolean | true | 显示 `*` 表示未提交的更改 |
@@ -165,6 +176,9 @@ Claude Code → stdin JSON → claude-hud → stdout → 在终端中显示
 | `gitStatus.pushCriticalThreshold` | number | 0 | 当未推送提交数达到此值时，用严重色显示 ahead 计数（`0` 表示禁用） |
 | `gitStatus.showFileStats` | boolean | false | 显示文件变更数量 `!M +A ✘D ?U` |
 | `gitStatus.branchOverflow` | `truncate` \| `wrap` | `truncate` | 保持当前截断行为，或在可能时让 git 块以自己的换行边界单独换到下一行 |
+| `jjStatus.enabled` | boolean | false | 显式启用 jj（Jujutsu）状态。启用后若找到真实的 `.jj` 目录，该仓库将显示 jj 而不是 git，二者不会同时运行 |
+| `jjStatus.showDirty` | boolean | true | 当 jj 工作副本提交与其父提交不同时显示 `*` |
+| `jjStatus.showConflicts` | boolean | true | 当 jj 工作副本提交包含未解决冲突时显示 `!conflict` |
 | `display.showModel` | boolean | true | 显示模型名称 `[Opus]` |
 | `display.modelSource` | `stdin` \| `auto` \| `transcript` | `stdin` | 控制模型名称来源。`stdin` 保持默认行为；`auto` 仅在 transcript 返回非 Claude 模型时切换，用于检测代理路由；`transcript` 始终使用 API 响应中的模型。Transcript 模型值会清理终端转义字符并截断为 80 个字符 |
 | `display.showAddedDirs` | boolean | true | 显示来自 `/add-dir` 的额外工作区目录（如 `+sparkle +lib-foo`）；空数组不显示任何内容。在两种布局中最多渲染 5 个目录（溢出显示为 `+N more`），基名截断为 24 个字符并加 `…` |
@@ -294,11 +308,17 @@ ClaudeHUD 优先使用官方 statusline stdin 负载中的使用率数据。如�
   "lineLayout": "expanded",
   "pathLevels": 2,
   "elementOrder": ["project", "tools", "context", "usage", "memory", "environment", "agents", "todos", "sessionTime"],
+  "projectLineOrder": ["project", "model"],
   "gitStatus": {
     "enabled": true,
     "showDirty": true,
     "showAheadBehind": true,
     "showFileStats": true
+  },
+  "jjStatus": {
+    "enabled": true,
+    "showDirty": true,
+    "showConflicts": true
   },
   "display": {
     "showTools": true,
@@ -340,6 +360,34 @@ ClaudeHUD 优先使用官方 statusline stdin 负载中的使用率数据。如�
 - `!` = 修改的文件，`+` = 新增/暂存，`✘` = 删除，`?` = 未跟踪
 - 计数为 0 的项会被省略，以保持显示整洁
 
+### Jujutsu（jj）支持
+
+将 `jjStatus.enabled` 设为 `true` 即可显式启用。启用后，如果在工作目录
+或其父目录找到真实的 `.jj` 目录，HUD 会显示 jj 原生状态；即使 jj 与 git
+共存，每次调用也只会选择其中一个。如果无法安全读取 jj，共存仓库会回退
+到原有的 git 状态。
+
+HUD 以适合提示符的只读方式运行 jj：禁用 pager、忽略实时工作副本，并从
+当前 operation 读取状态，避免状态栏刷新时快照文件或修改仓库。因此，脏状态
+标记反映的是 jj 最近一次工作副本快照；在另一条 jj 命令记录新更改之前，
+它可能暂时滞后。
+
+### 自动刷新
+
+Claude Code 只在交互之后（新的助手消息、`/compact` 完成、权限模式变更、vim 模式切换）才会重新运行状态栏，因此与时间相关的 HUD 信息——会话时长、使用量重置倒计时、提示词缓存倒计时——在消息之间会停止更新。要让它们持续跳动，可以在 `~/.claude/settings.json` 的 `statusLine` 条目中添加 `refreshInterval`（秒，最小值 1）：
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "...",
+    "refreshInterval": 5
+  }
+}
+```
+
+`/claude-hud:setup` 会在安装时提供此选项。每次刷新都会重新运行 HUD 命令，因此推荐 5 秒；只有在需要平滑倒计时时才用 1 秒。
+
 ### 临时关闭 HUD
 
 设置环境变量 `CLAUDE_HUD_DISABLE`，即可在本次会话中关闭 HUD，无需从 `settings.json` 中移除 `statusLine` 配置：
@@ -354,20 +402,25 @@ CLAUDE_HUD_DISABLE=1 claude
 
 **配置不生效？**
 - 检查 JSON 语法错误：无效的 JSON 会静默回退到默认值
-- 确保值有效：`pathLevels` 必须是 1、2 或 3；`lineLayout` 必须是 `expanded` 或 `compact`；`maxWidth` 必须是正数
+- 确保值有效：`pathLevels` 必须是 1、2、3 或 `full`；`lineLayout` 必须是 `expanded` 或 `compact`；`maxWidth` 必须是正数
 - 删除配置文件并运行 `/claude-hud:configure` 重新生成
 
 **Git 状态缺失？**
 - 验证你是否在 git 仓库中
 - 检查配置中的 `gitStatus.enabled` 不为 `false`
 
+**jj 状态缺失，或 jj 仓库中仍显示 `git:(...)`？**
+- 验证工作目录或其父目录存在 `.jj` 目录
+- 在配置中将 `jjStatus.enabled` 设为 `true`（jj 支持默认不启用）
+- 验证 `jj` 可执行文件已安装并位于 `PATH` 中
+
 **工具/Agent/待办行缺失？**
 - 这些默认隐藏——在配置中通过 `showTools`、`showAgents`、`showTodos` 启用
 - 它们也仅在有活动可显示时才会出现
 
 **HUD 设置后不显示？**
-- 重启 Claude Code 以加载新的 statusLine 配置
-- 在 macOS 上，完全退出 Claude Code 并在终端中再次运行 `claude`
+- 发送任意一条消息——设置会自动重新加载，但状态栏只在下一次交互后才会渲染
+- 如果仍未出现，重启 Claude Code（完全退出并在终端中再次运行 `claude`）——旧版 Claude Code 需要重启才能加载 statusLine 变更
 - 确认环境中没有设置 `CLAUDE_HUD_DISABLE`（例如从 shell 配置文件中导出）——它会让 HUD 完全静默，包括安装验证
 
 ---
