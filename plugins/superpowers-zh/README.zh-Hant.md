@@ -14,13 +14,31 @@ Chinese community edition of [superpowers](https://github.com/obra/superpowers) 
 
 > 📖 **免費配套學習** → [從零學會 AI 編程](https://aiolaola.com/?utm_source=github&utm_campaign=superpowers)：180 節免費實操課 + 《AI 編程實戰三卷書》線上閱讀 + 實戰社群 · superpowers 裝好後配上方法論效率翻倍 · 永久免費
 
+> 🆕 **v1.7.0 更新亮點**（[完整 Release Notes →](RELEASE-NOTES.zh.md)）
+> - 🌍 **全域安裝** `npx superpowers-zh --global` —— 一次安裝、所有專案共享，多專案使用者告別逐個重裝
+> - 🧩 新增 **騰訊 CodeBuddy** 與 **華為雲碼道 CodeArts** 兩款國產 IDE（工具數 18 → 20）
+> - 🌐 官網 [sp.aiolaola.com](https://sp.aiolaola.com) + README 新增**繁體中文**（簡 / 繁 / EN 三語）
+
 ### 📊 專案規模
 
 | 📦 翻譯 Skills | 🇨🇳 中國特色 Skills | 🤖 支援工具 |
 |:---:|:---:|:---:|
-| **14** | **6** | **Claude Code / Copilot CLI / Hermes Agent / Cursor / Windsurf / Kiro / Gemini CLI / Codex / Aider / Trae / VS Code (Copilot) / DeerFlow / OpenCode / OpenClaw / Qwen Code / Antigravity / Claw Code / Qoder** |
+| **14** | **6** | **Claude Code / Copilot CLI / Hermes Agent / Cursor / Windsurf / Kiro / Gemini CLI / Codex / Aider / Trae / VS Code (Copilot) / DeerFlow / OpenCode / OpenClaw / Qwen Code / Antigravity / Claw Code / Qoder / CodeBuddy（騰訊）/ CodeArts（華為雲碼道）** |
 
-> 🙏 **想贊助支持本專案？** 聯絡 **jnMetaCode@qq.com**
+---
+
+## ❤️ 贊助商 &nbsp;<sub>🙏 想出現在這裡？聯絡 **jnMetaCode@qq.com** 贊助</sub>
+
+<table>
+<tr>
+<td width="400" align="center">
+<a href="https://passport.compshare.cn/register?referral_code=ETD3L5JBM13CtKARkMORot&ytag=GPU_YY_YX_git_agency-agents"><img src="assets/sponsors/compshare.jpg" width="380" alt="優雲智算 by UCloud — 熱門國產模型按次調用套餐包"></a>
+</td>
+<td>
+感謝 <a href="https://passport.compshare.cn/register?referral_code=ETD3L5JBM13CtKARkMORot&ytag=GPU_YY_YX_git_agency-agents"><b>優雲智算</b></a> 贊助本專案！優雲智算是 UCloud 旗下 AI 雲平台，主打包月、按次的高性價比國模 Agent Plan 方案，支援 GLM-5.2，低至 <b>49 元/月</b>起。同時提供官轉穩定海外模型。支援接入 Claude Code、Codex 及 API 呼叫。支援企業高併發、7×24 技術支援、自助開票。<br><br>🎁 透過<a href="https://passport.compshare.cn/register?referral_code=ETD3L5JBM13CtKARkMORot&ytag=GPU_YY_YX_git_agency-agents">此連結</a>註冊的使用者，可得<b>免費 5 元平台體驗金</b>！
+</td>
+</tr>
+</table>
 
 ---
 
