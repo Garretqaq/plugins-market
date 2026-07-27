@@ -219,14 +219,6 @@
       "origin": "openai/codex-plugin-cc"
     },
     {
-      "name": "impeccable",
-      "source": "./plugins/impeccable",
-      "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
-      "tags": [],
-      "version": "3.9.1",
-      "origin": "pbakaus/impeccable"
-    },
-    {
       "name": "frontend-design",
       "source": "./plugins/frontend-design",
       "description": "Frontend design skill for UI/UX implementation",
@@ -352,6 +344,15 @@
       "version": "1.7.1",
       "origin": "https://github.com/jnMetaCode/superpowers-zh",
       "sourceHash": "609f712a032e764cf0e8a8639864bc89269f19b708748a83ff2aef511f5fc86f"
+    },
+    {
+      "name": "impeccable",
+      "source": "./plugins/impeccable",
+      "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
+      "tags": [],
+      "version": "4.0.2",
+      "origin": "pbakaus/impeccable",
+      "sourceHash": "cc4695388851eecfe0344c1d5fa3ee0ad6f07fd28d4fb97cd1013cbfd35dd120"
     }
   ]
 }

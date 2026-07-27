@@ -5,10 +5,12 @@ export const FILE_DOWNLOAD_PROVIDER_CONFIG_DIRS = Object.freeze({
   codex: '.codex',
   agents: '.agents',
   github: '.github',
+  grok: '.grok',
   kiro: '.kiro',
   opencode: '.opencode',
   pi: '.pi',
   qoder: '.qoder',
+  vibe: '.vibe',
 });
 
 export const FILE_DOWNLOAD_PROVIDERS = Object.freeze(

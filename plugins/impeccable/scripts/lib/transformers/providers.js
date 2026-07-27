@@ -122,4 +122,28 @@ export const PROVIDERS = {
     displayName: 'Rovo Dev',
     frontmatterFields: ['user-invocable', 'argument-hint', 'license', 'compatibility', 'metadata', 'allowed-tools'],
   },
+  vibe: {
+    provider: 'vibe',
+    providerTags: ['vibe'],
+    configDir: '.vibe',
+    displayName: 'Mistral Vibe',
+    frontmatterFields: ['user-invocable', 'license', 'compatibility', 'metadata', 'allowed-tools'],
+  },
+  grok: {
+    provider: 'grok',
+    providerTags: ['grok'],
+    configDir: '.grok',
+    displayName: 'Grok Build',
+    // Grok's skill frontmatter matches the Agent Skills spec plus Claude-style
+    // extensions (user-invocable, argument-hint, allowed-tools, model, effort).
+    // See https://docs.x.ai/build/features/skills-plugins-marketplaces and
+    // ~/.grok/docs/user-guide/08-skills.md.
+    frontmatterFields: ['user-invocable', 'argument-hint', 'license', 'compatibility', 'metadata', 'allowed-tools'],
+    // Project/user agents are markdown with YAML frontmatter (Claude-compatible).
+    agentFormat: 'claude-md',
+    emitHooks: 'grok',
+    // Grok discovers project hooks from `.grok/hooks/*.json` (not a single
+    // settings.json). Claude tool-name matchers alias to Grok tools.
+    hooksManifestRel: 'hooks/impeccable.json',
+  },
 };

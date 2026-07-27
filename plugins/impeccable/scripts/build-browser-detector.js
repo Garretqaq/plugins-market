@@ -58,7 +58,12 @@ ${code}
 `;
 
 fs.writeFileSync(OUTPUT, output);
-fs.mkdirSync(path.dirname(SITE_OUTPUT), { recursive: true });
-fs.writeFileSync(SITE_OUTPUT, output);
 console.log(`Generated ${path.relative(ROOT, OUTPUT)} (${(output.length / 1024).toFixed(1)} KB)`);
-console.log(`Generated ${path.relative(ROOT, SITE_OUTPUT)} (${(output.length / 1024).toFixed(1)} KB)`);
+
+// The site consumes this bundle from its own repo. Only mirror it when that
+// checkout is present, so a build here never recreates a stray `site/` tree.
+if (fs.existsSync(path.dirname(path.dirname(SITE_OUTPUT)))) {
+  fs.mkdirSync(path.dirname(SITE_OUTPUT), { recursive: true });
+  fs.writeFileSync(SITE_OUTPUT, output);
+  console.log(`Generated ${path.relative(ROOT, SITE_OUTPUT)} (${(output.length / 1024).toFixed(1)} KB)`);
+}

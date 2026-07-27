@@ -627,6 +627,18 @@ export const PROVIDER_PLACEHOLDERS = {
     config_file: 'AGENTS.md',
     ask_instruction: 'ask the user directly to clarify what you cannot infer.',
     command_prefix: '/'
+  },
+  'vibe': {
+    model: 'Mistral',
+    config_file: 'AGENTS.md',
+    ask_instruction: 'ask the user directly to clarify what you cannot infer.',
+    command_prefix: '/'
+  },
+  'grok': {
+    model: 'Grok',
+    config_file: 'AGENTS.md',
+    ask_instruction: 'STOP and call the AskUserQuestion tool to clarify.',
+    command_prefix: '/'
   }
 };
 
@@ -638,6 +650,7 @@ export const PROVIDER_BLOCK_TAGS = new Set([
   'cursor',
   'gemini',
   'github',
+  'grok',
   'kiro',
   'opencode',
   'pi',
@@ -645,6 +658,7 @@ export const PROVIDER_BLOCK_TAGS = new Set([
   'rovo-dev',
   'trae',
   'trae-cn',
+  'vibe',
 ]);
 
 /**
@@ -739,18 +753,38 @@ export function replacePlaceholders(content, provider, commandNames = [], allSki
     .replace(/\{\{available_commands\}\}/g, commandList);
 
   // Replace `/skillname` invocations with the correct command prefix for this provider
-  // (e.g., `/normalize` → `$normalize` for Codex)
+  // (e.g., `/normalize` → `$normalize` for Codex). Require the slash to be
+  // outside a path or URL so `.github/hooks/impeccable.json` and
+  // `.codex/skills/impeccable` remain untouched.
   if (cmdPrefix !== '/' && allSkillNames.length > 0) {
     const sorted = [...allSkillNames].sort((a, b) => b.length - a.length);
     for (const name of sorted) {
       result = result.replace(
-        new RegExp(`\\/(?=${escapeRegex(name)}(?:[^a-zA-Z0-9_-]|$))`, 'g'),
+        new RegExp(`(?<![a-zA-Z0-9_./-])\\/(?=${escapeRegex(name)}(?:[^a-zA-Z0-9_-]|$))`, 'g'),
         cmdPrefix
       );
     }
   }
 
   return result;
+}
+
+/**
+ * Render the one explicit provider marker allowed in executable skill scripts.
+ *
+ * Do not run replacePlaceholders() across JavaScript source: slash-command
+ * heuristics can collide with regex literals and runtime paths. Scripts import
+ * their command prefix from lib/provider.mjs, whose declaration is replaced
+ * here by an exact string match.
+ */
+export function replaceScriptProviderMarker(content, provider, buildProvider = provider) {
+  const placeholders = PROVIDER_PLACEHOLDERS[provider] || PROVIDER_PLACEHOLDERS.cursor;
+  const commandPrefix = placeholders.command_prefix || '/';
+  const prefixMarker = "export const IMPECCABLE_COMMAND_PREFIX = '/'; // @impeccable-provider-command-prefix";
+  const providerMarker = "export const IMPECCABLE_PROVIDER_ID = 'source'; // @impeccable-provider-id";
+  return content
+    .replace(prefixMarker, `export const IMPECCABLE_COMMAND_PREFIX = ${JSON.stringify(commandPrefix)};`)
+    .replace(providerMarker, `export const IMPECCABLE_PROVIDER_ID = ${JSON.stringify(buildProvider)};`);
 }
 
 /**
