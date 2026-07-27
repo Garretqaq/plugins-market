@@ -5,21 +5,6 @@
   },
   "plugins": [
     {
-      "name": "superpowers",
-      "source": "./plugins/superpowers",
-      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-      "tags": [
-        "skills",
-        "tdd",
-        "debugging",
-        "collaboration",
-        "best-practices",
-        "workflows"
-      ],
-      "version": "6.1.1",
-      "origin": "https://github.com/obra/superpowers.git"
-    },
-    {
       "name": "zh-readme",
       "source": "./plugins/zh-readme",
       "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
@@ -362,6 +347,22 @@
       "version": "1.2.0",
       "origin": "vinvcn/mattpocock-skills-zh-CN",
       "sourceHash": "e228a4c283e05fc2f186f744c53f19168c605e9256b030cfbc9632aca7cbf149"
+    },
+    {
+      "name": "superpowers",
+      "source": "./plugins/superpowers",
+      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
+      "tags": [
+        "skills",
+        "tdd",
+        "debugging",
+        "collaboration",
+        "best-practices",
+        "workflows"
+      ],
+      "version": "6.2.0",
+      "origin": "https://github.com/obra/superpowers.git",
+      "sourceHash": "531d4cb629b22194335cdb33ba8c18f3a7e6b1a021a66aa6e481735be18850be"
     }
   ]
 }
