@@ -38,7 +38,7 @@ Layering（哪些 packages 可以依赖哪些）是另一个 concern，在 confi
 
 ### 1. Detect the environment
 
-- **Package manager** — `pnpm-lock.yaml` → pnpm，`yarn.lock` → yarn，`bun.lockb` → bun，否则 npm。后续每条 command 都使用它。
+- **Package manager** — `pnpm-lock.yaml` → pnpm，`yarn.lock` → yarn，`bun.lockb` → bun，否则 npm。后续每条 command 都使用它（`pnpm`/`yarn`/`npm run`/`bunx`）。
 - **Packages root** — 存在 `src/` 就用 `src/packages`，否则用 `packages`。如果 repo 已有明显不同的 convention，与用户确认。
 - **Existing config** — 检查 `.dependency-cruiser.*` file。若存在，不要覆盖；merge 四条 rules 和 options，并说明添加了什么。
 

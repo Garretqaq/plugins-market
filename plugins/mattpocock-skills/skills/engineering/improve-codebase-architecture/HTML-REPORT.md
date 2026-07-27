@@ -9,7 +9,7 @@ Architecture review 渲染为单个 self-contained HTML file，写到 OS temp di
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Architecture review - {{repo name}}</title>
+    <title>Architecture review — {{repo name}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
       import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
@@ -49,18 +49,18 @@ Diagrams 承担主要信息量。Prose 要稀疏、直白，并自然使用 `/co
 - **Before / After diagram** - 核心内容。两列并排。见下方 patterns。
 - **Problem** - 一句话，说明哪里痛。
 - **Solution** - 一句话，说明什么会改变。
-- **Wins** - bullets，每条不超过 8 words，例如 "Tests hit one interface"、"Pricing logic stops leaking"、"Delete 4 shallow wrappers"。
+- **Wins** - bullets，每条不超过 6 words，例如 "Tests hit one interface"、"Pricing logic stops leaking"、"Delete 4 shallow wrappers"。
 - **ADR callout**（如适用）- amber-tinted box 中一行。
 
 不要写大段解释。如果 diagram 需要一段话才能懂，就重画 diagram。
 
 ## Diagram patterns
 
-选择适合 candidate 的 pattern，可以混用。不要让每个 diagram 都长得一样。
+选择适合 candidate 的 pattern，可以混用。不要让每个 diagram 都长得一样——多样性本身就是目的的一部分。
 
-### Mermaid graph
+### Mermaid graph（dependencies / call flow 的主力）
 
-用于 dependencies / call flow 这类 "X calls Y calls Z, and look at the mess." 的表达。把它包在 Tailwind-styled card 中。用 `classDef` 把 leakage edges 标红，把 deep module 标深色。Sequence diagrams 适合表达 "before: 6 round-trips; after: 1"。
+当要表达的是 "X calls Y calls Z, and look at the mess." 时，使用 Mermaid `flowchart` 或 `graph`。把它包在 Tailwind-styled card 中，免得显得是硬塞进来的。用 `classDef` 把 leakage edges 标红，把 deep module 标深色。Sequence diagrams 适合表达 "before: 6 round-trips; after: 1"。
 
 ```html
 <div class="rounded-lg border border-slate-200 bg-white p-4">
@@ -75,17 +75,17 @@ Diagrams 承担主要信息量。Prose 要稀疏、直白，并自然使用 `/co
 </div>
 ```
 
-### Hand-built boxes-and-arrows
+### Hand-built boxes-and-arrows（当 Mermaid 的 layout 妨碍表达时）
 
-当 Mermaid layout 妨碍表达时使用。Modules 用带 border 和 label 的 `<div>`；arrows 用绝对定位在 relative container 上的 inline SVG `<line>` 或 `<path>`。当你希望 "after" diagram 像一个 thick-bordered deep module，并把 internals 灰显时，这比 Mermaid 更合适。
+Modules 用带 border 和 label 的 `<div>`；arrows 用绝对定位在 relative container 上的 inline SVG `<line>` 或 `<path>`。当你希望 "after" diagram 像一个 thick-bordered 的 deep module、internals 灰显时，就用这种方式——Mermaid 无法以合适的视觉分量渲染出那种效果。
 
-### Cross-section
+### Cross-section（适合 layered shallowness）
 
-适合 layered shallowness。用水平 bands（`h-12 border-l-4`）展示一个 call 穿过的 layers。Before：6 个薄 layers，每个几乎不做事。After：1 个厚 band，标注 consolidated responsibility。
+用水平 bands（`h-12 border-l-4`）展示一个 call 穿过的 layers。Before：6 个薄 layers，每个几乎不做事。After：1 个厚 band，标注 consolidated responsibility。
 
-### Mass diagram
+### Mass diagram（适合表达 "interface as wide as implementation"）
 
-适合表达 "interface as wide as implementation"。每个 module 两个 rectangles：一个代表 interface surface area，一个代表 implementation。Before：interface rectangle 几乎和 implementation rectangle 一样高（shallow）。After：interface rectangle 矮，implementation rectangle 高（deep）。
+每个 module 两个 rectangles：一个代表 interface surface area，一个代表 implementation。Before：interface rectangle 几乎和 implementation rectangle 一样高（shallow）。After：interface rectangle 矮，implementation rectangle 高（deep）。
 
 ### Call-graph collapse
 

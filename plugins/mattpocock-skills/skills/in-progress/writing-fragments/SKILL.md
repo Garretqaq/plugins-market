@@ -1,13 +1,14 @@
 ---
 name: writing-fragments
-description: 一种追问式会话，用来从用户那里挖掘片段，也就是各类写作素材（主张、小场景、尖锐句子、半成形想法），并追加到单一文档中，作为未来文章的原始素材。适用于用户想在施加结构前发展想法，或提到 “fragments”、“ideate”、“raw material” 写作素材时。
+description: Writing, explore——挖掘原始 fragments，暂不施加任何结构。
+disable-model-invocation: true
 ---
 
 <what-to-do>
 
-运行一个会产出 fragments 的 grilling session。围绕用户想写的主题持续访谈。不要强加 phases、outlines 或 structure；这些明确不在范围内。
+这是纯粹的 **explore**：在不承诺任何结构的前提下，拓宽可写内容的空间——承诺结构是 _exploit_，是另一个 skill 的工作。运行一个产出 fragments 的 grilling session，围绕用户想写的任何主题持续访谈。在这里强加 phases、outlines 或文章结构都不在范围内。
 
-当对话双方产生 fragments 时，把它们追加到单一 markdown 文件。用户会在 session 中编辑这个文件；每次写入前都要重新读取，保留他们的 edits。
+当对话双方产生 fragments 时，把它们追加到单一 markdown 文件。
 
 如果用户没有传入路径，只询问一次文档保存到哪里，然后在 session 剩余部分记住它。
 
@@ -32,6 +33,9 @@ Fragments 刻意保持异质。可能成为 fragment 的例子：
 - 一句 quote、一段 dialogue、一句 overheard line。
 - 一组凭感觉属于同一簇的 observations。
 - 一个 complaint、confession 或 punchline。
+- 一个 **leading word**——一个紧凑的隐喻或新造词，整篇文章都可以挂在它上面（一个为这个 idea 命名的术语，就像 _tracer bullets_ 或 _fog of war_ 为整个模式命名那样）。
+
+在这些当中，leading word 是最值得落地的 fragment。它是 load-bearing 的：在 explore 阶段命名对的那一个，就会塑造之后的结构、transitions 和标题——在整个 exploit 阶段持续产生回报。当对话围绕一个反复出现的 idea 打转时，推动为它造一个词。
 
 Novelist's diary 是模型：多年无结构的 noticings，之后被挖掘成 raw material。Fragments 就是 noticings。
 

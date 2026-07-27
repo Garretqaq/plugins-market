@@ -83,7 +83,11 @@ Maintainer 可能会：
 
 ## When to write to `.out-of-scope/`
 
-只有当一个 **enhancement**（不是 bug）被拒绝为 `wontfix` 时才写。流程：
+只有当一个 **enhancement**（不是 bug）被*拒绝*为 `wontfix` 时才写。这对 enhancement PRs 与对 issues 完全适用——被拒绝的 PR 记录在这里，这样同样的请求就不会作为新代码再次出现。
+
+当某事因为**已经实现**而被 close 为 `wontfix` 时，**不要**写在这里。那是一个已构建的 feature，而不是被拒绝的 feature；记录它会让 dedup 检查被错误拒绝污染。相反，closing comment 应指向该 feature 已经存在的位置。
+
+流程：
 
 1. Maintainer 决定某个 feature request 不在范围内
 2. 检查是否已有匹配的 `.out-of-scope/` 文件

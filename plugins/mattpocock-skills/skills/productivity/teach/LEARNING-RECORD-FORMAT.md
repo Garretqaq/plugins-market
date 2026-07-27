@@ -2,7 +2,7 @@
 
 Learning records 存放在 `./learning-records/` 中，并使用 sequential numbering：`0001-slug.md`、`0002-slug.md` 等。懒创建目录，只在写入第一条 record 时创建。
 
-它们是 teaching 领域里的 ADR：记录 non-obvious lessons、key insights，以及会影响未来 sessions 的 prior knowledge。它们用于计算 zone of proximal development。
+它们是 teaching 领域里的 ADR：记录 non-obvious lessons、key insights，以及已声明的 prior knowledge，这些会影响未来 sessions。它们用于计算 zone of proximal development。
 
 ## Template
 

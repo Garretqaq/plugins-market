@@ -22,7 +22,7 @@
 
 给每个 sub-agent 单独的 technical brief（file paths、coupling details、来自 [DEEPENING.md](DEEPENING.md) 的 dependency category、seam 后面是什么）。这个 brief 独立于 Step 1 的用户-facing problem-space explanation。给每个 agent 不同的 design constraint：
 
-- Agent 1: "Minimize the interface - aim for 1-2 entry points max. Maximise leverage per entry point."
+- Agent 1: "Minimize the interface - aim for 1-3 entry points max. Maximise leverage per entry point."
 - Agent 2: "Maximise flexibility - support many use cases and extension."
 - Agent 3: "Optimise for the most common caller - make the default case trivial."
 - Agent 4（如适用）: "Design around ports & adapters for cross-seam dependencies."

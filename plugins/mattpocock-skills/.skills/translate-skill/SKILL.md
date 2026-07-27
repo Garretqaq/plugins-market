@@ -23,6 +23,7 @@ Translate natural-language prose, including:
 README explanations
 skill instructions
 skill descriptions
+user-facing frontmatter prompts
 agent-facing guidance
 maintainer-facing guidance
 docs prose
@@ -75,12 +76,27 @@ Do not remove attribution to the upstream project.
 
 Preserve frontmatter keys exactly.
 
-For frontmatter values:
+Classify each frontmatter value by meaning, not just by field name:
 
 - Keep `name` values unchanged.
-- Keep identifiers, commands, paths, package names, URLs, and tool names unchanged.
-- Translate `description` only when it is natural-language prose.
+- Translate user-facing or agent-facing natural-language prose into Simplified Chinese. This
+  includes `description` and `argument-hint` values.
+- Keep identifiers, commands, paths, package names, URLs, tool names, booleans, numbers, and
+  other typed configuration values unchanged.
+- Within a translatable value, preserve embedded slash commands, inline code, placeholders,
+  paths, URLs, package names, tool names, and other behavior-critical spans exactly.
 - Flag ambiguous values rather than guessing.
+
+Example:
+
+```yaml
+---
+name: teach
+description: 在这个工作区中教用户一个新技能或概念。
+disable-model-invocation: true
+argument-hint: "你想学习什么？"
+---
+```
 
 ## Translation style
 

@@ -13,7 +13,7 @@ description: 将测试文件从 `as` 类型断言迁移到 @total-typescript/sho
 
 Tests 中 `as` 的问题：
 
-- 会训练人忽略类型安全
+- 经过训练，不去使用它
 - 必须手动指定 target type
 - 对故意错误的数据需要 double-as（`as unknown as Type`）
 

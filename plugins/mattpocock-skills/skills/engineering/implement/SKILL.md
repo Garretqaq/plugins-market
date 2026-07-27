@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 实现用户在 spec 或 tickets 中描述的工作。
 
-尽可能在预先认可的 seams 上使用 `/tdd`。
+尽可能在预先约定好的 seams 上使用 `/tdd`。
 
 定期运行 typechecking，定期运行单个测试文件，并在最后运行完整测试套件。
 
