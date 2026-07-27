@@ -2,7 +2,7 @@
 name: teach
 description: 在这个工作区中教用户一个新技能或概念。
 disable-model-invocation: true
-argument-hint: "What would you like to learn about?"
+argument-hint: "你想学习什么？"
 ---
 
 用户要求你教他们某件事。这是一个 stateful request：他们打算在多个 sessions 中学习这个 topic。
@@ -16,6 +16,7 @@ argument-hint: "What would you like to learn about?"
 - `RESOURCES.md`：可探索的 resources 列表，用来把教学建立在 context knowledge 上，或获取 knowledge 和 wisdom。使用 [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md) 中的格式。
 - `./learning-records/*.md`：learning records 目录，记录用户已经学到的东西。它们大致相当于软件开发里的 architectural decision records：捕获非显而易见的 lessons 和 key insights，这些内容可能之后需要修订，或推动未来 sessions。它们应用来计算 zone of proximal development。标题格式为 `0001-<dash-case-name>.md`，数字每次递增。使用 [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md) 中的格式。
 - `./lessons/*.html`：lessons 目录。一个 **lesson** 是一个单独、自包含的 HTML output，用来教授一个与 mission 绑定的 tightly-scoped 内容。这是此 workspace 中教学的主要单元。
+- `./assets/*`：跨 lessons 共享的可复用 **components**。见 [Assets](#assets)。
 - `NOTES.md`：scratchpad，用来记下用户偏好或 working notes。
 
 ## Philosophy
@@ -58,6 +59,14 @@ Lesson 应该很短，并且很快就能完成。Learners 的 working memory 非
 每个 lesson 都应推荐一个 primary source，供用户阅读或观看。它应该是你在该 topic 上找到的最高质量、最高信任度 resource。
 
 每个 lesson 都应包含提醒：让用户向 agent 提 follow-up questions。Agent 是他们的老师，可以协助任何不清楚的地方。
+
+## Assets
+
+Lessons 由可复用的 **components** 构建，这些 components 存放在 `./assets/` 中：stylesheets、quiz widgets、simulators、diagram helpers——任何第二个 lesson 都能复用的东西。
+
+复用是默认，而不是例外。在编写一个 lesson 之前，先读取 `./assets/`，并基于已有的 components 构建。当一个 lesson 需要某个新的、可复用的东西时，把它写成 `./assets/` 中的一个 component 并链接过去——绝不要内联一段未来 lesson 会重复的代码。
+
+共享的 stylesheet 是每个 workspace 获得的第一个 component：每个 lesson 都链接它，这样 lessons 看起来像一门一致的课程，而不是一堆一次性产物。随着 workspace 增长，component library 也应随之增长。
 
 ## The Mission
 

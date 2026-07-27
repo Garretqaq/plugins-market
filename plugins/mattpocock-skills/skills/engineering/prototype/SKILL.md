@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: 在承诺方案前构建一次性原型来细化设计。根据问题在两个分支之间选择：用于状态或业务逻辑问题的可运行终端应用，或在同一路由中切换的多个显著不同 UI 变体。适用于用户想做原型、检查数据模型或状态机、模拟 UI、探索设计选项，或说 “prototype this”、“let me play with it”、“try a few designs” 时。
+description: 构建一次性原型来回答一个设计问题。适用于用户想验证某个 state model 或 logic 是否感觉对，或探索 UI 应该长什么样时。
 ---
 
 # Prototype

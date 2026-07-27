@@ -17,6 +17,11 @@ disable-model-invocation: true
 
 ### 1. Explore
 
+**先划定扫描范围——YAGNI。** 深化 module 的收益在于让未来修改更容易，因此要更关注最近仍在变化的 codebase 区域。开始探索前先决定去哪里看：
+
+- 如果用户点名了方向——module、subsystem 或 pain point——就按该方向探索，跳过下面的推断。
+- 否则，向前回看一段足够长的 commit history（`git log --oneline`），找出反复出现的 files 和 areas，让这些 hot spots 成为首要关注点。如果变更分散、没有明显 hot spot，再扩大范围。
+
 先读取项目 domain glossary（`CONTEXT.md`）以及你将触碰区域的 ADRs。
 
 然后使用 Agent tool，并设置 `subagent_type=Explore` 来遍历 codebase。不要套死板 heuristics；自然探索，并记录你感到 friction 的地方：
@@ -56,11 +61,11 @@ Report 末尾包含 **Top recommendation** section：你会先处理哪个 candi
 
 ### 3. Grilling loop
 
-用户选中 candidate 后，运行 `/grilling` skill，与用户走完 design tree：constraints、dependencies、deepened module 的形状、seam 后面放什么、哪些 tests 能保留。
+用户选中 candidate 后，运行 `/grilling` skill，与用户走完 decision tree：constraints、dependencies、deepened module 的形状、seam 后面放什么、哪些 tests 能保留。
 
 Side effects 随 decisions 成形而内联发生；运行 `/domain-modeling` skill，让 domain model 保持最新：
 
 - **要用 `CONTEXT.md` 中不存在的概念命名 deepened module？** 把 term 加入 `CONTEXT.md`。若文件不存在，按需创建。
 - **对话中打磨了 fuzzy term？** 立即更新 `CONTEXT.md`。
-- **用户以 load-bearing reason 拒绝了 candidate？** 提议写 ADR，表述为：_"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ 只有当该 reason 未来 explorer 也确实需要知道时才提议；跳过临时原因（"not worth it right now"）和显而易见原因。
+- **用户以 load-bearing reason 拒绝了 candidate？** 提议写 ADR，表述为：_"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ 只有当未来 explorer 确实需要该 reason 以避免再次提出同样建议时才提议；跳过临时原因（"not worth it right now"）和显而易见原因。
 - **想探索 deepened module 的 alternative interfaces？** 运行 `/codebase-design` skill，并使用其中的 design-it-twice parallel sub-agent pattern。

@@ -20,14 +20,6 @@
       "origin": "https://github.com/obra/superpowers.git"
     },
     {
-      "name": "mattpocock-skills",
-      "source": "./plugins/mattpocock-skills",
-      "description": "",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "vinvcn/mattpocock-skills-zh-CN"
-    },
-    {
       "name": "zh-readme",
       "source": "./plugins/zh-readme",
       "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
@@ -353,6 +345,23 @@
       "version": "4.0.2",
       "origin": "pbakaus/impeccable",
       "sourceHash": "cc4695388851eecfe0344c1d5fa3ee0ad6f07fd28d4fb97cd1013cbfd35dd120"
+    },
+    {
+      "name": "mattpocock-skills",
+      "source": "./plugins/mattpocock-skills",
+      "description": "Matt Pocock 面向真实工程工作的 agent skills：持续追问、spec/ticket flows、TDD、代码审查、领域建模等。即装即用，不是 vibe coding。",
+      "tags": [
+        "engineering",
+        "skills",
+        "tdd",
+        "code-review",
+        "grilling",
+        "domain-modeling",
+        "productivity"
+      ],
+      "version": "1.2.0",
+      "origin": "vinvcn/mattpocock-skills-zh-CN",
+      "sourceHash": "e228a4c283e05fc2f186f744c53f19168c605e9256b030cfbc9632aca7cbf149"
     }
   ]
 }

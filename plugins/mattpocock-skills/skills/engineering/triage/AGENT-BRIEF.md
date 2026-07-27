@@ -1,6 +1,8 @@
 # Writing Agent Briefs
 
-Agent brief 是 issue 移动到 `ready-for-agent` 时发布在 GitHub issue 上的结构化 comment。它是 AFK agent 后续工作的权威 spec。原始 issue body 和讨论是 context；agent brief 是 contract。
+Agent brief 是 GitHub issue 或 PR 移动到 `ready-for-agent` 时发布在其上的结构化 comment。它是 AFK agent 后续工作的权威 spec。原始 body 和讨论是 context；agent brief 是 contract。
+
+Brief 说明 **agent 应该做什么**，这延伸到两种 surface：对 issue，是从零构建 change；对 PR，是*在现有 diff 上*还剩什么要做——完成它、补齐缺口、处理 review 意见。两种情况原则相同；下面的 PR 示例展示了差异。
 
 ## Principles
 
@@ -141,6 +143,43 @@ checked for matches.
 - Automated matching (human confirms the match)
 - Reopening previously rejected features
 - Bug reports (only enhancement rejections go to `.out-of-scope/`)
+```
+
+### Good agent brief (PR)
+
+对 PR 而言，“Current behavior” 描述的是 diff 的状态，brief 要求 agent 完成或修复它，而不是从零构建。
+
+```markdown
+## Agent Brief
+
+**Category:** enhancement
+**Summary:** Finish the contributor's `--json` output flag for `triage list`
+
+**Current behavior:**
+The PR adds a `--json` flag that serializes the issue list to JSON. The happy
+path works and the diff matches the project's command structure. Two gaps
+remain: errors are still printed as human text (not JSON), and the new flag has
+no test coverage.
+
+**Desired behavior:**
+With `--json`, all output — including errors — is well-formed JSON on stdout,
+and the command's exit codes are unchanged. The existing human-readable output
+is untouched when the flag is absent.
+
+**Key interfaces:**
+- The command's error path should emit `{ "error": string }` under `--json`
+  instead of the plain-text error
+- Reuse the existing serializer the PR already added; don't introduce a second
+
+**Acceptance criteria:**
+- [ ] `triage list --json` emits valid JSON for both success and error cases
+- [ ] Exit codes match the non-JSON command
+- [ ] A test covers the `--json` success output and one error case
+- [ ] Default (non-JSON) output is byte-for-byte unchanged
+
+**Out of scope:**
+- Adding `--json` to any other command
+- Changing the JSON shape of the success payload the PR already defined
 ```
 
 ### Bad agent brief

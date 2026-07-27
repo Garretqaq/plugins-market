@@ -1,5 +1,23 @@
 {
   "name": "mattpocock-skills",
+  "version": "1.2.0",
+  "description": "Matt Pocock 面向真实工程工作的 agent skills：持续追问、spec/ticket flows、TDD、代码审查、领域建模等。即装即用，不是 vibe coding。",
+  "author": {
+    "name": "Matt Pocock",
+    "url": "https://www.aihero.dev"
+  },
+  "homepage": "https://www.aihero.dev/s/skills-newsletter",
+  "repository": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+  "license": "MIT",
+  "keywords": [
+    "engineering",
+    "skills",
+    "tdd",
+    "code-review",
+    "grilling",
+    "domain-modeling",
+    "productivity"
+  ],
   "skills": [
     "./skills/engineering/ask-matt",
     "./skills/engineering/code-review",
@@ -27,7 +45,5 @@
     "./skills/misc/migrate-to-shoehorn",
     "./skills/misc/scaffold-exercises",
     "./skills/misc/setup-pre-commit"
-  ],
-  "version": "1.0.0",
-  "description": ""
+  ]
 }

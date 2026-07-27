@@ -7,7 +7,7 @@ description: "适用于需要解决正在进行的 git merge/rebase 冲突时。
 
 2. **为每个冲突找到 primary sources**。深入理解每个变更为什么产生，以及原始意图是什么。阅读 commit messages，检查 PRs，检查原始 issues/tickets。
 
-3. **解决每个 hunk。** 尽可能保留双方意图。若二者不兼容，选择符合本次 merge 目标的一方，并记录 trade-off。不要发明新行为。始终解决冲突；不要 `--abort`。
+3. **解决每个 hunk。** 尽可能保留双方意图。若二者不兼容，选择符合本次 merge 目标的一方，并记录 trade-off。**不要**发明新行为。始终解决冲突；不要 `--abort`。
 
 4. 发现项目的 **automated checks** 并运行它们，通常是 typecheck、tests、format。修复 merge 引入的问题。
 

@@ -1,7 +1,7 @@
 ---
 name: handoff
 description: 把当前对话压缩成交接文档，让另一个代理接手。
-argument-hint: "What will the next session be used for?"
+argument-hint: "下一个会话将用于什么？"
 disable-model-invocation: true
 ---
 

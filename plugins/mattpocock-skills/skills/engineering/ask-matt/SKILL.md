@@ -23,7 +23,7 @@ disable-model-invocation: true
    - **是** -> **`/to-spec`**（把 thread 变成 spec），再用 **`/to-tickets`** 拆成 tracer-bullet tickets，每个 ticket 声明 **blocking edges**。Local tracker 在 `.scratch/<feature>/issues/` 下每 ticket 一个文件，手动按 blockers-first 处理；真实 tracker 用 native blocking links，因此 blockers 已完成的 ticket 都可领取。每 ticket 启动一次 **`/implement`**，并在 tickets 之间**清空 context**。
    - **否** -> 在当前 context window 里直接运行 **`/implement`**。
 
-   无论哪种方式，**`/implement`** 都会在内部驱动 **`/tdd`** 构建每个 issue：一次一个 red-green slice；然后用 **`/code-review`** 收尾，对 diff 做 Standards + Spec 双轴 review，再提交。只想 test-first 构建一个具体 behavior 时，单独用 **`/tdd`**；想按固定点 review branch 或 PR 时，单独用 **`/code-review`**。
+   无论哪种方式，**`/implement`** 都会在内部驱动 **`/tdd`** 构建每个 issue：一次一个 red-green slice；然后用 **`/code-review`** 收尾，对 diff 做 Standards + Spec 双轴 review，再提交。只想在没有完整 spec 的情况下 test-first 构建一个具体 behavior 时，单独用 **`/tdd`**；想按固定点 review branch 或 PR 时，单独用 **`/code-review`**。
 
 ### Context hygiene
 
@@ -39,9 +39,11 @@ disable-model-invocation: true
 
   Triage 只用于 **不是你创建的** issues：bug reports、incoming feature requests，以及任何原始进入的内容。`/to-tickets` 产出的 tickets 已经是 agent-ready，不要再 triage。
 
-- **巨大而模糊的 effort——greenfield project 或巨大 feature build，一个 session 装不下** -> **`/wayfinder`**。当从当前位置到 destination 的路还看不见时，它在 issue tracker 上绘制调查 tickets 的 **shared map**，逐个解决，产出 **decisions, not deliverables**，直到 fog 被推开、路径清晰。然后在 **`/to-spec`** 汇入 main flow（如果 effort 后来发现足够小，也可直接进入 **`/implement`**）。`/grill-with-docs` 用于一个 session 能装下的想法，wayfinder 用于装不下的想法。
-
 - **Something's broken** -> **`/diagnosing-bugs`**。用于难处理的问题：第一眼看不出的 bug、间歇性 flake、夹在两个 known-good states 之间的 regression。它在拥有 **tight feedback loop** 前拒绝空想，也就是一个已经能在 _这个_ bug 上变红的命令；然后用 regression test 修复。如果复盘发现真正问题是没有好 seam 能锁住 bug，它会把后续交给 **`/improve-codebase-architecture`**。
+
+- **巨大而模糊的 effort——greenfield project 或巨大 feature build，一个 session 装不下** -> **`/wayfinder`**，这是这里认知负担最重的 flow。当从当前位置到 destination 的路还看不见时，它在 issue tracker 上绘制 **decision tickets** 的 **shared map**，逐个解决，产出 **decisions, not deliverables**，直到 fog 被推开、路径清晰。`/grill-with-docs` 用于一个 session 能装下的想法，wayfinder 用于装不下的想法；它更慢、更密集，所以只应留给确实如此的 effort，绝不要用于范围明确的 feature。
+
+  Map 清晰后，**它会 hand off，而不是 build**：先进入 **`/to-spec`**，把 map 中相互链接的 decisions 收束成可构建计划，然后照常使用 `/to-tickets` 和 `/implement`。让 map 直接循环进入 `/implement` 会跳过这次收束并丢掉相互链接的细节；只有当 effort 后来发现确实很小时，才直接进入 `/implement`。
 
 ## Codebase health
 
@@ -59,7 +61,7 @@ disable-model-invocation: true
 ## Crossing sessions
 
 - **`/handoff`** - 当 thread 快满，或需要分支到另一个 session（例如 `/prototype` session）时，把对话压缩成 markdown 文件。你不会在原地继续，而是 **打开新 session 并引用该文件** 来带过 context。它是 context windows 之间的桥，两个方向都能用。想要 **fresh session** 但又要 **保留当前对话** 时使用。
-- **`/compact`**（内置）- 留在 **同一个对话** 中，让早先 turns 被总结。只在阶段之间的明确断点使用；不要在阶段中途 compact，否则 agent 可能迷路。`/handoff` 是分叉；`/compact` 是继续。
+- **`/compact`**（内置）- 留在 **同一个对话** 中，让早先 turns 被总结。只在阶段之间的明确断点、且你不介意丢失逐字历史时使用；不要在阶段中途 compact，否则 agent 可能迷路。`/handoff` 是分叉；`/compact` 是继续。
 
 ## Standalone
 
