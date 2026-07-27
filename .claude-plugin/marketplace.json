@@ -5,6 +5,65 @@
   },
   "plugins": [
     {
+      "name": "superpowers",
+      "source": "./plugins/superpowers",
+      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
+      "tags": [
+        "skills",
+        "tdd",
+        "debugging",
+        "collaboration",
+        "best-practices",
+        "workflows"
+      ],
+      "version": "6.2.0",
+      "origin": "https://github.com/obra/superpowers.git",
+      "sourceHash": "531d4cb629b22194335cdb33ba8c18f3a7e6b1a021a66aa6e481735be18850be"
+    },
+    {
+      "name": "superpowers-zh",
+      "source": "./plugins/superpowers-zh",
+      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
+      "tags": [
+        "skills",
+        "tdd",
+        "debugging",
+        "chinese",
+        "中文",
+        "best-practices",
+        "workflows"
+      ],
+      "version": "1.7.1",
+      "origin": "https://github.com/jnMetaCode/superpowers-zh",
+      "sourceHash": "609f712a032e764cf0e8a8639864bc89269f19b708748a83ff2aef511f5fc86f"
+    },
+    {
+      "name": "mattpocock-skills",
+      "source": "./plugins/mattpocock-skills",
+      "description": "Matt Pocock 面向真实工程工作的 agent skills：持续追问、spec/ticket flows、TDD、代码审查、领域建模等。即装即用，不是 vibe coding。",
+      "tags": [
+        "engineering",
+        "skills",
+        "tdd",
+        "code-review",
+        "grilling",
+        "domain-modeling",
+        "productivity"
+      ],
+      "version": "1.2.0",
+      "origin": "vinvcn/mattpocock-skills-zh-CN",
+      "sourceHash": "e228a4c283e05fc2f186f744c53f19168c605e9256b030cfbc9632aca7cbf149"
+    },
+    {
+      "name": "impeccable",
+      "source": "./plugins/impeccable",
+      "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
+      "tags": [],
+      "version": "4.0.2",
+      "origin": "pbakaus/impeccable",
+      "sourceHash": "cc4695388851eecfe0344c1d5fa3ee0ad6f07fd28d4fb97cd1013cbfd35dd120"
+    },
+    {
       "name": "zh-readme",
       "source": "./plugins/zh-readme",
       "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
@@ -304,65 +363,6 @@
       "version": "0.6.0",
       "origin": "jarrodwatts/claude-hud",
       "sourceHash": "60ff82dbfd2f0b0ef1492de498744448294752917d00a522d87238930e03da7f"
-    },
-    {
-      "name": "superpowers-zh",
-      "source": "./plugins/superpowers-zh",
-      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
-      "tags": [
-        "skills",
-        "tdd",
-        "debugging",
-        "chinese",
-        "中文",
-        "best-practices",
-        "workflows"
-      ],
-      "version": "1.7.1",
-      "origin": "https://github.com/jnMetaCode/superpowers-zh",
-      "sourceHash": "609f712a032e764cf0e8a8639864bc89269f19b708748a83ff2aef511f5fc86f"
-    },
-    {
-      "name": "impeccable",
-      "source": "./plugins/impeccable",
-      "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
-      "tags": [],
-      "version": "4.0.2",
-      "origin": "pbakaus/impeccable",
-      "sourceHash": "cc4695388851eecfe0344c1d5fa3ee0ad6f07fd28d4fb97cd1013cbfd35dd120"
-    },
-    {
-      "name": "mattpocock-skills",
-      "source": "./plugins/mattpocock-skills",
-      "description": "Matt Pocock 面向真实工程工作的 agent skills：持续追问、spec/ticket flows、TDD、代码审查、领域建模等。即装即用，不是 vibe coding。",
-      "tags": [
-        "engineering",
-        "skills",
-        "tdd",
-        "code-review",
-        "grilling",
-        "domain-modeling",
-        "productivity"
-      ],
-      "version": "1.2.0",
-      "origin": "vinvcn/mattpocock-skills-zh-CN",
-      "sourceHash": "e228a4c283e05fc2f186f744c53f19168c605e9256b030cfbc9632aca7cbf149"
-    },
-    {
-      "name": "superpowers",
-      "source": "./plugins/superpowers",
-      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-      "tags": [
-        "skills",
-        "tdd",
-        "debugging",
-        "collaboration",
-        "best-practices",
-        "workflows"
-      ],
-      "version": "6.2.0",
-      "origin": "https://github.com/obra/superpowers.git",
-      "sourceHash": "531d4cb629b22194335cdb33ba8c18f3a7e6b1a021a66aa6e481735be18850be"
     }
   ]
 }
