@@ -912,50 +912,63 @@ describe('detectHtml — hero-eyebrow-chip', () => {
   });
 });
 
-describe('detectHtml — repeated-section-kickers', () => {
+describe('detectHtml — kicker-above-heading', () => {
   const SHOULD_FLAG = [
-    'The Future Is Admitted',
-    'A Private Rehearsal',
-    'Reviewed, Not Sold',
-    'Touch the Future',
+    'A Single Kicker Still Flags',
+    'Kicker Above An H3',
+    'Kicker Above An H4',
+    'Sub Hero Heading',
+    'Small Caps Kicker',
+    'Heading Role Kicker',
   ];
   const SHOULD_PASS = [
     'Breadcrumb Before Heading',
+    'Breadcrumb Trail Outside Nav',
+    'Dateline Above Headline',
+    'Editorial Card Meta',
     'Form Heading Is Separate',
-    'Step Indicator',
     'Figure Caption Label',
-    'Normal Case Kicker',
+    'Limitation Of Liability',
+    'Indemnification Clause',
+    'Chapter Numbering Passes',
+    'Application Panel Context',
+    'Page Title After Nav',
+    '48%',
+    'Sentence Case Lead In',
+    'Untracked Caps Label',
     'Intentional Brand Label',
+    'Hero Owned By Hero Rule',
     'Garden Suite',
     'Sea Loft',
-    'Cliff Suite',
-    '/impeccabletypeset',
-    '/impeccablelayout',
-    '/impeccablecolorize',
-    '/impeccablecraft',
-    '/impeccableaudit',
-    '/impeccablepolish',
+    'Step Indicator',
     'Mockup Hero Variant One',
-    'Mockup Hero Variant Two',
-    'Mockup Hero Variant Three',
   ];
 
-  it('repeated-section-kickers: flags only repeated section scaffolding', async () => {
-    const f = await detectHtml(path.join(FIXTURES, 'repeated-section-kickers.html'));
+  it('kicker-above-heading: flags any kicker above a heading, without repetition', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'kicker-above-heading.html'));
     const flagged = new Set();
     for (const r of f) {
-      if (r.antipattern !== 'repeated-section-kickers') continue;
-      assert.equal(r.severity, 'advisory');
+      if (r.antipattern !== 'kicker-above-heading') continue;
+      assert.equal(r.severity, 'warning');
       const matches = [...(r.snippet || '').matchAll(/"([^"]+)"/g)];
       if (matches.length) flagged.add(matches[matches.length - 1][1]);
     }
 
     for (const text of SHOULD_FLAG) {
-      assert.ok(flagged.has(text), `expected "${text}" to be flagged as repeated-section-kickers`);
+      assert.ok(flagged.has(text), `expected "${text}" to be flagged as kicker-above-heading`);
     }
     for (const text of SHOULD_PASS) {
-      assert.ok(!flagged.has(text), `"${text}" should NOT be flagged as repeated-section-kickers`);
+      assert.ok(!flagged.has(text), `"${text}" should NOT be flagged as kicker-above-heading`);
     }
+
+    // The retired repeated-section-kickers id must never resurface.
+    assert.ok(!f.some(r => r.antipattern === 'repeated-section-kickers'),
+      'retired rule id repeated-section-kickers should not fire');
+
+    // The hero-scale h1 eyebrow stays with hero-eyebrow-chip, exactly once.
+    const heroHits = f.filter(r => r.antipattern === 'hero-eyebrow-chip'
+      && /Hero Owned By Hero Rule/.test(r.snippet || ''));
+    assert.equal(heroHits.length, 1, 'hero-eyebrow-chip should own the hero-scale h1 eyebrow');
   });
 });
 
@@ -1316,5 +1329,37 @@ describe('em-dash overuse — browser adapter parity (checkEmDashOveruse)', () =
   it('counts the double-hyphen em-dash substitute', () => {
     const findings = checkEmDashOveruse('a--b c--d e--f g--h i--j k--l m--n o--p done');
     assert.equal(id(findings), 'em-dash-overuse');
+  });
+});
+
+describe('detectHtml — CSS patterns in prose (css-in-prose fixtures)', () => {
+  // CSS-property regexes must scan only real style carriers (<style> blocks,
+  // style="" attributes, linked stylesheets, class="" attributes). Prose,
+  // <code>/<pre> samples, and comments documenting a pattern are not styling.
+  // Live FP: impeccable.style's changelog line
+  // `<code>background-clip: text</code> gradients stop tripping contrast`.
+  const SCOPED_RULE_IDS = ['gradient-text', 'ai-color-palette', 'side-tab', 'pulsing-dot'];
+
+  it('documentation about the patterns adds no findings', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'css-in-prose-should-pass.html'));
+    const hits = f.filter(r => SCOPED_RULE_IDS.includes(r.antipattern));
+    assert.equal(
+      hits.length, 0,
+      `prose/code/comment mentions must not flag, got: ${hits.map(r => `${r.antipattern}:${r.snippet}`).join('; ')}`
+    );
+  });
+
+  it('the same patterns applied as real styling still flag', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'css-in-prose-should-flag.html'));
+    const gradient = f.filter(r => r.antipattern === 'gradient-text');
+    assert.ok(
+      gradient.some(r => /background-clip: text \+ gradient/.test(r.snippet || '')),
+      'expected the CSS-mechanism gradient-text finding'
+    );
+    assert.ok(
+      gradient.some(r => /bg-clip-text \+ bg-gradient \(Tailwind\)/.test(r.snippet || '')),
+      'expected the Tailwind gradient-text finding'
+    );
+    assert.ok(f.some(r => r.antipattern === 'ai-color-palette'), 'expected ai-color-palette');
   });
 });
