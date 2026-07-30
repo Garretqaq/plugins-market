@@ -31,12 +31,6 @@
       "addedAt": "2026-07-05T10:51:08.594Z"
     },
     {
-      "id": "anthropics_claude-plugins-official",
-      "source": "anthropics/claude-plugins-official",
-      "url": "https://github.com/anthropics/claude-plugins-official.git",
-      "addedAt": "2026-07-05T10:54:56.521Z"
-    },
-    {
       "id": "https_github.com_Fokkyp_SoftwareCopyright-Skill",
       "source": "https://github.com/Fokkyp/SoftwareCopyright-Skill",
       "url": "https://github.com/Fokkyp/SoftwareCopyright-Skill",
