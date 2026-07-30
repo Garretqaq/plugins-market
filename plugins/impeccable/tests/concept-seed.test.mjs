@@ -11,7 +11,7 @@ import {
   validateConceptEntry,
 } from '../skill/scripts/lib/concept-catalog.mjs';
 import { readCompositionCatalog } from '../skill/scripts/lib/composition-catalog.mjs';
-import { renderChallenger, selectApprovedChallengers, selectApprovedStaging, selectApprovedStagings } from '../skill/scripts/concept-seed.mjs';
+import { dealCompositions, renderChallenger, selectApprovedChallengers, selectApprovedComposition, selectApprovedCompositions } from '../skill/scripts/concept-seed.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = path.join(ROOT, 'skill', 'scripts', 'concept-seed.mjs');
@@ -98,34 +98,39 @@ describe('concept seed scopes', () => {
     assert.doesNotMatch(degraded.stdout, /CHALLENGERS:/);
   });
 
-  it('keeps staging challengers inside the requested surface mode', () => {
+  it('keeps composition challengers inside the requested surface mode', () => {
     const pool = [
       { id: 'persuade-stage', surface: 'persuade', status: 'approved' },
       { id: 'experience-stage', surface: 'experience', status: 'approved' },
     ];
-    const experience = selectApprovedStaging({
+    const experience = selectApprovedComposition({
       scope: 'direction',
       key: 'mode-match',
       mode: 'experience',
       sourceCompositions: pool,
     });
-    const read = selectApprovedStaging({
+    const read = selectApprovedComposition({
       scope: 'direction',
       key: 'mode-missing',
       mode: 'read',
       sourceCompositions: pool,
     });
     assert.equal(experience?.id, 'experience-stage');
-    assert.equal(read, null, 'a missing mode must not borrow an unrelated staging');
+    assert.equal(read, null, 'a missing mode must not borrow an unrelated composition');
 
     const rendered = run('direction', ['--mode', 'experience']);
     assert.equal(rendered.status, 0);
     assert.match(rendered.stdout, /mode: experience/);
     assert.match(rendered.stdout, /--scope direction --mode experience --from stable-test/);
-    assert.match(rendered.stdout, /FIRST-SURFACE STAGING/);
+    // Compositions are pulled from the deal by default until the expanded
+    // catalog ships; the draw machinery stays live behind the env gate.
+    assert.doesNotMatch(rendered.stdout, /COMPOSITION/);
+    const gated = run('direction', ['--mode', 'experience'], { IMPECCABLE_COMPOSITIONS: '1' });
+    assert.equal(gated.status, 0);
+    assert.match(gated.stdout, /FIRST-SURFACE COMPOSITION/);
   });
 
-  it('draws several staging inputs from distinct families when the approved pool allows it', () => {
+  it('draws several composition inputs from distinct families when the approved pool allows it', () => {
     const pool = [
       { id: 'a', familyId: 'first', surface: 'persuade', status: 'approved' },
       { id: 'b', familyId: 'scroll', surface: 'persuade', status: 'approved' },
@@ -133,7 +138,7 @@ describe('concept seed scopes', () => {
       { id: 'd', familyId: 'first', surface: 'persuade', status: 'approved' },
       { id: 'e', familyId: 'other', surface: 'operate', status: 'approved' },
     ];
-    const picks = selectApprovedStagings({ scope: 'direction', key: 'several', mode: 'persuade', sourceCompositions: pool });
+    const picks = selectApprovedCompositions({ scope: 'direction', key: 'several', mode: 'persuade', sourceCompositions: pool });
     assert.equal(picks.length, 3);
     assert.equal(new Set(picks.map(pick => pick.familyId)).size, 3);
     assert.equal(picks.every(pick => pick.surface === 'persuade'), true);
@@ -364,7 +369,7 @@ describe('concept seed scopes', () => {
     assert.equal(picks.some(pick => pick.id === 'lone-niche'), true);
   });
 
-  it('weights staging draws by rating without letting the ticket dedupe erase the weight', () => {
+  it('weights composition draws by rating without letting the ticket dedupe erase the weight', () => {
     const pool = [
       { id: 'flagship-stage', surface: 'persuade', status: 'approved', review: { status: 'approved', rating: 3 } },
       { id: 'plain-stage', surface: 'persuade', status: 'approved', review: { status: 'approved' } },
@@ -372,43 +377,43 @@ describe('concept seed scopes', () => {
     ];
     const counts = { 'flagship-stage': 0, 'plain-stage': 0, 'marginal-stage': 0 };
     for (let index = 0; index < 300; index += 1) {
-      const picks = selectApprovedStagings({ scope: 'direction', key: `stage-weight-${index}`, mode: 'persuade', sourceCompositions: pool, count: 1 });
+      const picks = selectApprovedCompositions({ scope: 'direction', key: `stage-weight-${index}`, mode: 'persuade', sourceCompositions: pool, count: 1 });
       counts[picks[0].id] += 1;
     }
-    assert.equal(counts['marginal-stage'], 0, 'a 1-star staging keeps its approval but leaves the draw');
+    assert.equal(counts['marginal-stage'], 0, 'a 1-star composition keeps its approval but leaves the draw');
     // Two tickets should put the flagship first roughly twice as often as the
     // unrated peer; a generous margin keeps the assertion deterministic-safe.
     assert.equal(counts['flagship-stage'] > counts['plain-stage'] * 1.3, true,
       `flagship ${counts['flagship-stage']} vs plain ${counts['plain-stage']}`);
 
-    // A pool of nothing but 1-star keeps still yields stagings.
+    // A pool of nothing but 1-star keeps still yields compositions.
     const onlyMarginal = [
       { id: 'lone-marginal-stage', surface: 'persuade', status: 'approved', review: { status: 'approved', rating: 1 } },
     ];
-    const fallback = selectApprovedStagings({ scope: 'direction', key: 'stage-lone', mode: 'persuade', sourceCompositions: onlyMarginal });
+    const fallback = selectApprovedCompositions({ scope: 'direction', key: 'stage-lone', mode: 'persuade', sourceCompositions: onlyMarginal });
     assert.equal(fallback.some(pick => pick.id === 'lone-marginal-stage'), true);
   });
 
-  it('gates stagings by breadth and falls back when every staging is niche', () => {
+  it('gates compositions by breadth and falls back when every composition is niche', () => {
     const pool = [
       { id: 'broad-stage', surface: 'persuade', status: 'approved' },
       { id: 'niche-stage', surface: 'persuade', status: 'approved', review: { breadth: 'niche' } },
     ];
     for (let index = 0; index < 60; index += 1) {
-      const picks = selectApprovedStagings({ scope: 'direction', key: `stage-breadth-${index}`, mode: 'persuade', sourceCompositions: pool });
-      assert.equal(picks.some(pick => pick.id === 'niche-stage'), false, `niche staging dealt at key stage-breadth-${index}`);
+      const picks = selectApprovedCompositions({ scope: 'direction', key: `stage-breadth-${index}`, mode: 'persuade', sourceCompositions: pool });
+      assert.equal(picks.some(pick => pick.id === 'niche-stage'), false, `niche composition dealt at key stage-breadth-${index}`);
     }
     const allNiche = [
       { id: 'only-niche-stage', surface: 'persuade', status: 'approved', review: { breadth: 'niche' } },
     ];
-    const fallback = selectApprovedStagings({ scope: 'direction', key: 'all-niche', mode: 'persuade', sourceCompositions: allNiche });
+    const fallback = selectApprovedCompositions({ scope: 'direction', key: 'all-niche', mode: 'persuade', sourceCompositions: allNiche });
     assert.equal(fallback.some(pick => pick.id === 'only-niche-stage'), true, 'an all-niche pool must fall back instead of dealing nothing');
   });
 
-  it('mode-filters the fixture staging pool per surface register', () => {
-    const operate = selectApprovedStaging({ scope: 'surface', key: 'fix-mode', mode: 'operate', sourceCompositions: fixtureCompositions });
+  it('mode-filters the fixture composition pool per surface register', () => {
+    const operate = selectApprovedComposition({ scope: 'surface', key: 'fix-mode', mode: 'operate', sourceCompositions: fixtureCompositions });
     assert.equal(operate.surface, 'operate');
-    const experience = selectApprovedStaging({ scope: 'surface', key: 'fix-mode', mode: 'experience', sourceCompositions: fixtureCompositions });
+    const experience = selectApprovedComposition({ scope: 'surface', key: 'fix-mode', mode: 'experience', sourceCompositions: fixtureCompositions });
     assert.equal(experience.surface, 'experience');
   });
 
@@ -464,5 +469,141 @@ describe('init gate', () => {
     });
     assert.equal(result.status, 0);
     assert.doesNotMatch(result.stdout, /NO_PRODUCT_MD/);
+  });
+
+  // Mode eligibility on worlds. Before this, selectApprovedChallengers never
+  // received the mode at all, so a build asking for an app UI could draw six
+  // worlds that only make sense on a landing page.
+  it('keeps worlds out of modes their reviewer excluded, and treats absent as all modes', () => {
+    const make = (id, tier, allowedModes) => ({
+      id,
+      familyId: `${id}-family`,
+      wellTier: tier,
+      strength: 'world',
+      status: 'approved',
+      form: `${id} form`,
+      spark: `${id} spark`,
+      system: [],
+      webLeverage: `${id} web`,
+      review: { status: 'approved', ...(allowedModes ? { allowedModes } : {}) },
+    });
+    const pool = [
+      make('persuade-only', 'graphic', ['persuade']),
+      make('anywhere', 'graphic'),
+      make('operate-capable', 'graphic', ['operate', 'read']),
+      make('radar', 'interaction'),
+      make('cavern', 'atmosphere'),
+    ];
+
+    for (let index = 0; index < 25; index += 1) {
+      const operate = selectApprovedChallengers({
+        scope: 'direction', key: `mode-gate-${index}`, mode: 'operate', sourceConcepts: pool,
+      }).picks.map(pick => pick.id);
+      assert.equal(operate.includes('persuade-only'), false, `persuade-only dealt for operate at ${index}`);
+    }
+
+    // Absent allowedModes stays eligible in every mode.
+    const seen = new Set();
+    for (let index = 0; index < 25; index += 1) {
+      for (const mode of ['persuade', 'operate', 'read', 'experience']) {
+        for (const pick of selectApprovedChallengers({
+          scope: 'direction', key: `mode-any-${index}`, mode, sourceConcepts: pool,
+        }).picks) seen.add(pick.id);
+      }
+    }
+    assert.equal(seen.has('anywhere'), true, 'a world with no allowedModes must stay eligible');
+  });
+
+  it('falls back rather than starving a tier whose every world excludes the mode', () => {
+    const make = (id, tier, allowedModes) => ({
+      id,
+      familyId: `${id}-family`,
+      wellTier: tier,
+      strength: 'world',
+      status: 'approved',
+      form: `${id} form`,
+      spark: `${id} spark`,
+      system: [],
+      webLeverage: `${id} web`,
+      review: { status: 'approved', ...(allowedModes ? { allowedModes } : {}) },
+    });
+    // The whole interaction tier is persuade-only. Selection must degrade to it
+    // rather than throw or deal fewer than six.
+    const pool = [
+      make('graphic-any', 'graphic'),
+      make('graphic-two', 'graphic'),
+      make('radar-persuade', 'interaction', ['persuade']),
+      make('cavern-any', 'atmosphere'),
+    ];
+    const picks = selectApprovedChallengers({
+      scope: 'direction', key: 'starve', mode: 'operate', sourceConcepts: pool,
+    }).picks;
+    assert.equal(picks.some(pick => pick.id === 'radar-persuade'), true, 'an emptied tier must fall back to its full pool');
+  });
+
+  // Grain: how much of the product a composition composes. Framed by what the
+  // skill can be asked for (a docs site, an onboarding flow, a landing page, a
+  // data table) rather than by what the catalog happens to hold.
+  it('prefers the requested grain and tops up from the register', () => {
+    const make = (id, grain) => ({
+      id, familyId: `${id}-family`, surface: 'operate', status: 'approved',
+      ...(grain ? { grain } : {}), review: { status: 'approved' },
+    });
+    const pool = [
+      make('flow-one', 'flow'),
+      make('flow-two', 'flow'),
+      make('view-one', 'view'),
+      make('view-two', 'view'),
+      make('untagged', null),
+    ];
+    const dealt = dealCompositions({ scope: 'surface', key: 'grain-pref', mode: 'operate', grain: 'flow', sourceCompositions: pool });
+    assert.equal(dealt.picks.length, 3, 'a thin grain tops up rather than dealing fewer');
+    const ids = dealt.picks.map(pick => pick.id);
+    assert.equal(ids.includes('flow-one') && ids.includes('flow-two'), true, 'both grain matches deal first');
+    assert.equal(dealt.match.atGrain, 2);
+    assert.equal(dealt.match.grainAvailable, 2);
+  });
+
+  // The report is the point. Three plausible view-grain compositions dealt
+  // against a flow request, with no signal that none matched, is the same silent
+  // plausibility this axis exists to remove.
+  it('reports a grain miss instead of passing off borrowed structure', () => {
+    const make = id => ({ id, familyId: `${id}-family`, surface: 'operate', status: 'approved', grain: 'view', review: { status: 'approved' } });
+    const pool = [make('a'), make('b'), make('c')];
+    const dealt = dealCompositions({ scope: 'surface', key: 'grain-miss', mode: 'operate', grain: 'flow', sourceCompositions: pool });
+    assert.equal(dealt.picks.length, 3, 'still deals three');
+    assert.equal(dealt.match.atGrain, 0, 'and says none matched');
+    assert.equal(dealt.match.grainAvailable, 0);
+  });
+
+  // Platform is a hard filter, not a preference: a composition that needs hover
+  // does not degrade on a phone, it stops working.
+  it('excludes compositions the platform cannot carry, with no fallback', () => {
+    const make = (id, platforms) => ({
+      id, familyId: `${id}-family`, surface: 'operate', status: 'approved',
+      ...(platforms ? { platforms } : {}), review: { status: 'approved' },
+    });
+    const pool = [make('web-only', ['web']), make('anywhere', null), make('native', ['ios', 'android'])];
+    const onIos = dealCompositions({ scope: 'surface', key: 'plat', mode: 'operate', platform: 'ios', sourceCompositions: pool });
+    const ids = onIos.picks.map(pick => pick.id);
+    assert.equal(ids.includes('web-only'), false, 'a web-only composition must not reach an iOS build');
+    assert.equal(onIos.match.platformExcluded, 1);
+
+    const allWebOnly = [make('x', ['web']), make('y', ['web'])];
+    const starved = dealCompositions({ scope: 'surface', key: 'plat2', mode: 'operate', platform: 'android', sourceCompositions: allWebOnly });
+    assert.deepEqual(starved.picks, [], 'an empty deal beats dealing something that cannot work');
+  });
+
+  it('reproduces a grain-scoped deal from the same key', () => {
+    const make = (id, grain) => ({
+      id, familyId: `${id}-family`, surface: 'read', status: 'approved',
+      ...(grain ? { grain } : {}), review: { status: 'approved' },
+    });
+    const pool = [make('p1', 'product'), make('v1', 'view'), make('v2', 'view'), make('r1', 'region')];
+    const args = { scope: 'surface', key: 'grain-stable', mode: 'read', grain: 'product', sourceCompositions: pool };
+    assert.deepEqual(
+      selectApprovedCompositions(args).map(p => p.id),
+      selectApprovedCompositions(args).map(p => p.id)
+    );
   });
 });

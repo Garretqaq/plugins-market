@@ -59,9 +59,9 @@
       "source": "./plugins/impeccable",
       "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
       "tags": [],
-      "version": "4.0.3",
+      "version": "4.0.4",
       "origin": "pbakaus/impeccable",
-      "sourceHash": "c27bb662c20a0faad0bfd4829c64dae2ec2fdcc3aa068127596d32bc470d135e"
+      "sourceHash": "5f626ed866b64e9ee9dd6e5e0c2a4d92619c609b"
     },
     {
       "name": "zh-readme",
