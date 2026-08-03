@@ -88,6 +88,20 @@
       "origin": "op7418/humanizer-zh"
     },
     {
+      "name": "caveman",
+      "source": "./plugins/caveman",
+      "description": "Ultra-compressed communication mode. Cuts 65% of output tokens (measured) while keeping full technical accuracy by speaking like a caveman.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "JuliusBrussee/caveman",
+      "exclude": [
+        "tests",
+        "docs",
+        "dist",
+        ".github"
+      ]
+    },
+    {
       "name": "taste-skill",
       "source": "./plugins/taste-skill",
       "description": "Frontend design taste skills including brutalist, minimalist, soft, redesign, stitch, and more",
@@ -100,6 +114,14 @@
       ],
       "version": "1.0.0",
       "origin": "https://github.com/Leonxlnx/taste-skill"
+    },
+    {
+      "name": "ponytail",
+      "source": "./plugins/ponytail",
+      "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
+      "tags": [],
+      "version": "4.8.4",
+      "origin": "DietrichGebert/ponytail"
     },
     {
       "name": "api-tester",
@@ -124,14 +146,6 @@
       "tags": [],
       "version": "1.0.0",
       "origin": "anthropics/claude-plugins-official"
-    },
-    {
-      "name": "ponytail",
-      "source": "./plugins/ponytail",
-      "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
-      "tags": [],
-      "version": "4.8.4",
-      "origin": "DietrichGebert/ponytail"
     },
     {
       "name": "github",
@@ -280,20 +294,6 @@
       ],
       "version": "2.11.0",
       "origin": "nextlevelbuilder/ui-ux-pro-max-skill"
-    },
-    {
-      "name": "caveman",
-      "source": "./plugins/caveman",
-      "description": "Ultra-compressed communication mode. Cuts 65% of output tokens (measured) while keeping full technical accuracy by speaking like a caveman.",
-      "tags": [],
-      "version": "1.0.0",
-      "origin": "JuliusBrussee/caveman",
-      "exclude": [
-        "tests",
-        "docs",
-        "dist",
-        ".github"
-      ]
     },
     {
       "name": "alphaear-deepear-lite",
