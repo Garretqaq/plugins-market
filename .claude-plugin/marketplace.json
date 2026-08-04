@@ -364,6 +364,15 @@
       "version": "0.6.0",
       "origin": "jarrodwatts/claude-hud",
       "sourceHash": "60ff82dbfd2f0b0ef1492de498744448294752917d00a522d87238930e03da7f"
+    },
+    {
+      "name": "investment-research",
+      "source": "./plugins/investment-research",
+      "description": "AI Berkshire skill: 投资研究：巴菲特-芒格-段永平-李录 四大师综合分析框架. Source: skills/investment-research.md.",
+      "tags": [],
+      "version": "1.0.0",
+      "origin": "https://github.com/xbtlin/ai-berkshire",
+      "sourceHash": "c77b5ec94a1ed11b270a647e74656c711e88bf7e"
     }
   ]
 }
