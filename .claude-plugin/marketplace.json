@@ -120,8 +120,9 @@
       "source": "./plugins/ponytail",
       "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
       "tags": [],
-      "version": "4.8.4",
-      "origin": "DietrichGebert/ponytail"
+      "version": "4.9.0",
+      "origin": "DietrichGebert/ponytail",
+      "sourceHash": "93c5eaa97ec448b74055f6478898324b65ddb7f9"
     },
     {
       "name": "api-tester",
