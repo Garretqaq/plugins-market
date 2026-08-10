@@ -363,9 +363,9 @@
         "todos",
         "claude-code"
       ],
-      "version": "0.6.0",
+      "version": "0.7.0",
       "origin": "jarrodwatts/claude-hud",
-      "sourceHash": "60ff82dbfd2f0b0ef1492de498744448294752917d00a522d87238930e03da7f"
+      "sourceHash": "d31d63352c7107ecc7dd6389133a6cb648cf0de7"
     },
     {
       "name": "investment-research",
