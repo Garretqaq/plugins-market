@@ -23,7 +23,7 @@
     {
       "name": "superpowers-zh",
       "source": "./plugins/superpowers-zh",
-      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 18 款工具",
+      "description": "AI 编程超能力中文增强版：20 个 skills（14 翻译 + 4 中国原创 + 2 上游历史保留），支持 Claude Code / Hermes Agent / Cursor / Claw Code / Qoder 等 23 款工具",
       "tags": [
         "skills",
         "tdd",
@@ -33,9 +33,9 @@
         "best-practices",
         "workflows"
       ],
-      "version": "1.7.1",
+      "version": "1.7.8",
       "origin": "https://github.com/jnMetaCode/superpowers-zh",
-      "sourceHash": "609f712a032e764cf0e8a8639864bc89269f19b708748a83ff2aef511f5fc86f"
+      "sourceHash": "4510dcde1be745604c47e55767388eb27560b261"
     },
     {
       "name": "mattpocock-skills",
