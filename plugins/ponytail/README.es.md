@@ -25,8 +25,8 @@
 </p>
 
 <p align="center">
-  <strong>~54% menos código (hasta 94%) &middot; ~20% más barato &middot; ~27% más rápido &middot; 100% seguro</strong><br>
-  <sub>Medido en sesiones reales de Claude Code editando un repo open-source real (FastAPI + React), contra el mismo agente sin skill. ~54% es el promedio de 12 tareas de feature (Haiku 4.5, n=4); llega al 94% cuando un agente sobre-construye (un selector de fechas) y es casi cero cuando el código ya es mínimo. ponytail mantiene cada guarda de seguridad, mientras que un prompt pelado de "escribe one-liners" se salta una. (El benchmark anterior de un solo disparo reportaba 80-94% como cifra plana; contra un baseline agéntico justo, ese es el techo por tarea, no el promedio.) <a href="benchmarks/results/2026-06-18-agentic.md">Reporte completo</a> &middot; <a href="benchmarks/">reprodúcelo</a>.</sub>
+  <strong>~54% menos de código (hasta 94%) &middot; ~20% más barato &middot; ~27% más rápido &middot; 100% seguro</strong><br>
+  <sub>Medido en sesiones reales de Claude Code editando un repo open-source real (FastAPI + React), contra el mismo agente sin skill. ~54% es el promedio de 12 tareas de feature (Haiku 4.5, n=4); llega al 94% cuando un agente sobre-construye (un selector de fechas) y es casi cero cuando el código ya es mínimo. ponytail mantiene cada guarda de seguridad, mientras que un prompt simple de "escribe one-liners" se salta una. (El benchmark anterior de un solo disparo reportaba 80-94% como cifra plana; contra un baseline agéntico justo, ese es el techo por tarea, no el promedio.) <a href="benchmarks/results/2026-06-18-agentic.md">Reporte completo</a> &middot; <a href="benchmarks/">reprodúcelo</a>.</sub>
 </p>
 
 <p align="center">
@@ -214,6 +214,23 @@ clawhub install ponytail
 
 Instala ponytail como skill de OpenClaw desde ClawHub; los skills de review, audit, debt y help se instalan igual (`clawhub install ponytail-review`, etc.). OpenClaw lo aplica en tareas de código y también lo expone como comando `/ponytail`. Sin ClawHub, copia [`.openclaw/skills/ponytail`](.openclaw/skills/) a `~/.openclaw/skills/`.
 
+### Grok Build
+
+```bash
+grok plugin install DietrichGebert/ponytail --trust
+```
+
+Habilita el plugin (está desactivado por defecto): `/plugins` → Plugins → Space en `ponytail`, o en `~/.grok/config.toml`:
+
+```toml
+[plugins]
+enabled = ["ponytail"]
+```
+
+Abre una sesión nueva (o recarga los plugins). Los skills aparecen como `/ponytail`, `/ponytail-review`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, `/ponytail-help`. Verifica con `grok inspect`. Grok puede invocar ponytail automáticamente en tareas de código según la descripción del skill; usa `/ponytail` (o `/ponytail lite`, `/ponytail full`, `/ponytail ultra`) cuando necesites activarlo de forma explícita. No se usan hooks de ciclo de vida de Grok: la salida de `SessionStart` no puede inyectar instrucciones.
+
+`AGENTS.md` sigue funcionando solo como instrucciones desde un checkout sin el plugin. Desinstalar: `grok plugin uninstall ponytail`.
+
 Eso fue todo. Él estaría orgulloso. No lo va a decir.
 
 Activo en cada sesión, con un puñado de comandos (ver [Comandos](#comandos)). `/ponytail ultra` existe para cuando el codebase te hizo algo personal. El texto de inicio y de cambio de modo muestra el nivel activo.
@@ -256,6 +273,9 @@ El paquete de skills de OpenClaw (`.openclaw/skills/`) se genera desde `skills/`
 El benchmark de correctness lanza Python para las verificaciones de email y CSV; se prueba `python3` antes que `python`. Las verificaciones de CSV requieren `pandas` instalado localmente.
 
 ## FAQ
+
+**¿Puedo usarlo junto con [caveman](https://github.com/JuliusBrussee/caveman)?**
+Sí, y deberías. Caveman achica lo que el agente dice; ponytail achica lo que construye. Mitades distintas, sin solapamiento: caveman deja el código intacto byte por byte, ponytail no se mete con la prosa. Charla concisa sobre código mínimo.
 
 **¿Necesita un archivo de configuración?**
 No. Un opcional `~/.config/ponytail/config.json` o la variable `PONYTAIL_DEFAULT_MODE` pueden fijar el nivel default, pero nada es obligatorio.
