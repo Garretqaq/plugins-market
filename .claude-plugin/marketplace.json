@@ -50,9 +50,9 @@
         "domain-modeling",
         "productivity"
       ],
-      "version": "1.2.0",
+      "version": "1.2.3",
       "origin": "vinvcn/mattpocock-skills-zh-CN",
-      "sourceHash": "e228a4c283e05fc2f186f744c53f19168c605e9256b030cfbc9632aca7cbf149"
+      "sourceHash": "30ecef8e45cafe233f1449e366ad39c7aed1bc68"
     },
     {
       "name": "impeccable",
