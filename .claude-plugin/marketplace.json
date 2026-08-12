@@ -33,9 +33,9 @@
         "best-practices",
         "workflows"
       ],
-      "version": "1.7.8",
+      "version": "1.7.9",
       "origin": "https://github.com/jnMetaCode/superpowers-zh",
-      "sourceHash": "4510dcde1be745604c47e55767388eb27560b261"
+      "sourceHash": "80caf678fb8a36a94de1f57e59317a50cbcc0fc8"
     },
     {
       "name": "mattpocock-skills",
