@@ -38,23 +38,6 @@
       "sourceHash": "80caf678fb8a36a94de1f57e59317a50cbcc0fc8"
     },
     {
-      "name": "mattpocock-skills",
-      "source": "./plugins/mattpocock-skills",
-      "description": "Matt Pocock 面向真实工程工作的 agent skills：持续追问、spec/ticket flows、TDD、代码审查、领域建模等。即装即用，不是 vibe coding。",
-      "tags": [
-        "engineering",
-        "skills",
-        "tdd",
-        "code-review",
-        "grilling",
-        "domain-modeling",
-        "productivity"
-      ],
-      "version": "1.2.3",
-      "origin": "vinvcn/mattpocock-skills-zh-CN",
-      "sourceHash": "30ecef8e45cafe233f1449e366ad39c7aed1bc68"
-    },
-    {
       "name": "impeccable",
       "source": "./plugins/impeccable",
       "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
