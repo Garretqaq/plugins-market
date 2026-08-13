@@ -4,6 +4,14 @@ All notable changes to Claude HUD will be documented in this file.
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-08-11
+
+### Fixed
+- Remove completed agents on the next HUD refresh after one minute and keep completed history from displacing running agents (#704).
+
+### Security
+- Sanitize, validate, and bound agent labels before terminal output (#704).
+
 ## [0.7.0] - 2026-08-07
 
 ### Added
