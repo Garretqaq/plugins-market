@@ -172,6 +172,143 @@ describe('checkDesignCoverage', () => {
     assert.deepEqual(checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd }), []);
   });
 
+  it('allows Components to be absent from a marked seed document', () => {
+    for (const command of ['/impeccable', '$impeccable']) {
+      const design = [
+        `<!-- SEED: established with the user before implementation; re-run ${command} document once there's code to capture the actual tokens and components. -->`,
+        '',
+        '# Design System: X',
+        '',
+        '## Colors', '', '### Primary', '- **Ink** (#111): Text.', '',
+        '## Typography', '', '**Body Font:** Inter', '',
+        '### Hierarchy', '- **Body** (400, 16px, 1.5): Paragraphs.', '',
+      ].join('\n');
+      assert.deepEqual(checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd }), []);
+    }
+  });
+
+  it('still requires seed documents to cover Colors and Typography', () => {
+    for (const command of ['/impeccable', '$impeccable']) {
+      const design = [
+        `<!-- SEED: established with the user before implementation; re-run ${command} document once there's code to capture the actual tokens and components. -->`,
+        '',
+        '# Design System: X',
+        '',
+        '## Typography', '', '**Body Font:** Inter', '',
+        '### Hierarchy', '- **Body** (400, 16px, 1.5): Paragraphs.', '',
+      ].join('\n');
+      const findings = checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd });
+      assert.deepEqual(ids(findings), ['design-md-coverage']);
+      assert.match(findings[0].summary, /no colors section/);
+      assert.doesNotMatch(findings[0].summary, /components/);
+    }
+  });
+
+  it('counts machine-readable frontmatter as section coverage', () => {
+    const design = [
+      '---',
+      'name: X',
+      'colors:',
+      '  ink: "#111111"',
+      'typography:',
+      '  body:',
+      '    fontFamily: Inter',
+      'components:',
+      '  button:',
+      '    backgroundColor: "{colors.ink}"',
+      '---',
+      '',
+      '# Design System: X',
+      '',
+      'See the canonical source for prose guidance.',
+      '',
+    ].join('\n');
+    assert.deepEqual(checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd }), []);
+  });
+
+  it('does not count empty frontmatter mappings as section coverage', () => {
+    const design = [
+      '---',
+      'name: X',
+      'colors:',
+      'typography:',
+      '  body:',
+      '    fontFamily: Inter',
+      'components:',
+      '  button:',
+      '    backgroundColor: "#111111"',
+      '---',
+      '',
+      '# Design System: X',
+      '',
+    ].join('\n');
+    const findings = checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd });
+    assert.deepEqual(ids(findings), ['design-md-coverage']);
+    assert.match(findings[0].summary, /no colors section/);
+    assert.doesNotMatch(findings[0].summary, /typography|components/);
+  });
+
+  it('does not count boolean or numeric frontmatter scalars as section coverage', () => {
+    for (const colors of ['false', '0']) {
+      const design = [
+        '---',
+        'name: X',
+        `colors: ${colors}`,
+        'typography:',
+        '  body:',
+        '    fontFamily: Inter',
+        'components:',
+        '  button:',
+        '    backgroundColor: "#111111"',
+        '---',
+        '',
+        '# Design System: X',
+        '',
+      ].join('\n');
+      const findings = checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd });
+      assert.deepEqual(ids(findings), ['design-md-coverage']);
+      assert.match(findings[0].summary, /no colors section/);
+    }
+  });
+
+  it('does not count empty frontmatter collection literals as section coverage', () => {
+    for (const colors of ['[]', '{}']) {
+      const design = [
+        '---',
+        'name: X',
+        `colors: ${colors}`,
+        'typography:',
+        '  body:',
+        '    fontFamily: Inter',
+        'components:',
+        '  button:',
+        '    backgroundColor: "#111111"',
+        '---',
+        '',
+        '# Design System: X',
+        '',
+      ].join('\n');
+      const findings = checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd });
+      assert.deepEqual(ids(findings), ['design-md-coverage']);
+      assert.match(findings[0].summary, /no colors section/);
+    }
+  });
+
+  it('counts populated frontmatter array literals as section coverage', () => {
+    const design = [
+      '---',
+      'name: X',
+      'colors: ["#111111"]',
+      'typography: [Inter]',
+      'components: [button]',
+      '---',
+      '',
+      '# Design System: X',
+      '',
+    ].join('\n');
+    assert.deepEqual(checkDesignCoverage({ design, designPath: 'DESIGN.md', parseDesignMd }), []);
+  });
+
   it('reports nothing without a DESIGN.md', () => {
     assert.deepEqual(checkDesignCoverage({ design: null, parseDesignMd }), []);
   });
@@ -332,6 +469,29 @@ describe('checkHookInstallation', () => {
   it('handles the #399 guarded absolute form (user-level installs)', () => {
     const abs = path.join(scratch, '.claude', 'skills', 'impeccable', 'scripts', 'hook.mjs');
     const p = JSON.stringify(abs);
+    const guarded = `[ ! -f ${p} ] || node ${p}`;
+    write('.claude/settings.json', JSON.stringify({
+      hooks: { Stop: [{ hooks: [{ command: guarded }] }] },
+    }));
+    // absolute path missing → flagged
+    assert.deepEqual(
+      ids(checkHookInstallation({ projectRoot: scratch, repoRoot: scratch, providerId: 'claude-code' })),
+      ['hook-script-missing'],
+    );
+    // present → quiet
+    write('.claude/skills/impeccable/scripts/hook.mjs', '// hook\n');
+    assert.deepEqual(
+      checkHookInstallation({ projectRoot: scratch, repoRoot: scratch, providerId: 'claude-code' }),
+      [],
+    );
+  });
+
+  it('handles the #476 single-quoted absolute form (user-level installs)', () => {
+    // The shell-injection fix single-quotes the absolute POSIX path instead of
+    // JSON.stringify. The doctor's token parser must read the single-quoted
+    // form too, or it silently stops verifying every user-level install.
+    const abs = path.join(scratch, '.claude', 'skills', 'impeccable', 'scripts', 'hook.mjs');
+    const p = `'${abs}'`;
     const guarded = `[ ! -f ${p} ] || node ${p}`;
     write('.claude/settings.json', JSON.stringify({
       hooks: { Stop: [{ hooks: [{ command: guarded }] }] },

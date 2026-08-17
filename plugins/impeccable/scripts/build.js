@@ -23,6 +23,7 @@ import { createTransformer, PROVIDERS } from './lib/transformers/index.js';
 import { hooksJsonFor, buildClaudePluginHooksManifest } from './lib/transformers/hooks.js';
 import { createAllZips, createProviderZip } from './lib/zip.js';
 import { collectPluginVersions } from './lib/validate-plugin-versions.js';
+import { collectPluginManifestFindings } from './lib/validate-plugin-manifest.js';
 import { stageOpenAIPlugin } from './lib/openai-plugin.js';
 import { ANTIPATTERNS } from '../cli/engine/registry/antipatterns.mjs';
 // Sub-page generation is now handled by Astro content collections.
@@ -59,6 +60,7 @@ function generateCounts(rootDir, skills, buildDir) {
   const filesToCheck = [
     'site/pages/index.astro',
     'README.md',
+    'README.npm.md',
     'AGENTS.md',
     '.claude-plugin/plugin.json',
     '.claude-plugin/marketplace.json',
@@ -86,9 +88,13 @@ function generateCounts(rootDir, skills, buildDir) {
     // Check for stale detection counts. Use the changelog-stripped content
     // so historical counts in changelog entries (e.g. "28 rules" from an
     // older release) don't flag against the current detector total.
-    const detectPattern = /\b(\d+)\s+(deterministic\s+)?(checks|patterns|rules|detections)/gi;
+    // "detector" as an infix ("60 deterministic detector rules") and
+    // qualified "issues" both evaded the old pattern, which is how five
+    // stale counts shipped while the validator reported clean.
+    const detectPattern = /\b(\d+)\s+(deterministic\s+)?(detector\s+)?(checks|patterns|rules|detections|issues)\b/gi;
     for (const match of strippedContent.matchAll(detectPattern)) {
       const num = parseInt(match[1]);
+      if (match[4] === 'issues' && !match[2]) continue; // plain "issues" is prose, not a count claim
       if (num !== detectionCount && num > 10) { // ignore small numbers like "3 patterns"
         console.error(`  ❌ ${relPath}: found "${match[0]}" but detection count is ${detectionCount}`);
         errors++;
@@ -133,6 +139,27 @@ function validatePluginVersions(rootDir) {
     console.log(`✓ Plugin/skill versions agree: ${source}`);
   }
   return total;
+}
+
+/**
+ * Guard against unverified plugin manifest shapes (PR #494). The pure check
+ * lives in ./lib/validate-plugin-manifest.js (so it's unit-tested directly);
+ * this wrapper owns the console output and the error count the build gates on.
+ */
+function validatePluginManifestShape(rootDir) {
+  const findings = collectPluginManifestFindings(rootDir);
+  for (const { relPath, reason } of findings) {
+    console.error(`  ❌ ${relPath}: ${reason}`);
+  }
+  if (findings.length > 0) {
+    console.error(
+      `\n❌ ${findings.length} plugin manifest shape problem(s). Every manifest key is a ` +
+      'claim about the Claude Code loader; see scripts/lib/validate-plugin-manifest.js (PR #494).',
+    );
+  } else {
+    console.log('✓ Plugin manifest shape matches the verified loader contract');
+  }
+  return findings.length;
 }
 
 function validateSkillFrontmatter(skills) {
@@ -345,6 +372,57 @@ function validateSkillProse(rootDir) {
 }
 
 /**
+ * Validate that every `{{ask_instruction}}` interpolation starts a sentence.
+ *
+ * The placeholder's per-provider values are complete capitalized sentences
+ * ("STOP and call the AskUserQuestion tool to clarify."), so a call site that
+ * splices it mid-sentence ships malformed guidance to every provider at once:
+ * `stop and STOP and call the AskUserQuestion tool to clarify. before expanding
+ * it`. Four reference files shipped exactly that before this gate existed, and
+ * a comment in PROVIDER_PLACEHOLDERS asking authors to keep the contract is
+ * what failed to prevent it.
+ *
+ * Returns the number of validation errors. Build fails if > 0.
+ */
+function validateAskInstructionSites(rootDir) {
+  const dir = path.join(rootDir, 'skill', 'reference');
+  const token = '{{ask_instruction}}';
+  let errors = 0;
+  let sites = 0;
+
+  if (!fs.existsSync(dir)) return 0;
+
+  for (const file of fs.readdirSync(dir)) {
+    if (path.extname(file) !== '.md') continue;
+    const rel = path.join('skill/reference', file);
+    fs.readFileSync(path.join(dir, file), 'utf-8')
+      .split('\n')
+      .forEach((line, i) => {
+        let idx = line.indexOf(token);
+        while (idx !== -1) {
+          sites++;
+          // Bold/italic markers may sit between the punctuation and the token.
+          const before = line.slice(0, idx).replace(/[*_`]+\s*$/, '').trimEnd();
+          if (before !== '' && !/[.!?:]$/.test(before)) {
+            console.error(`  ❌ ${rel}:${i + 1}: ${token} is spliced mid-sentence`);
+            console.error(`        ...${before.slice(-60)} ${token}`);
+            console.error(`        Provider values are full sentences. Start a new one.`);
+            errors++;
+          }
+          idx = line.indexOf(token, idx + 1);
+        }
+      });
+  }
+
+  if (errors === 0) {
+    console.log(`✓ ask_instruction call sites: ${sites} sentence-initial`);
+  } else {
+    console.error(`\n❌ ${errors} of ${sites} {{ask_instruction}} site(s) spliced mid-sentence.`);
+  }
+  return errors;
+}
+
+/**
  * Validate that every hand-authored HTML page carries the shared site header.
  * The partial is stamped with `<!-- site-header v1 -->` so drift is loud.
  *
@@ -461,8 +539,10 @@ This folder contains skills for all supported tools:
   .gemini/    -> Gemini CLI
   .codex/     -> Codex custom agents (Codex skills use .agents/)
   .agents/    -> Codex CLI
+  .agent/     -> Antigravity
   .github/    -> GitHub Copilot
   .grok/      -> Grok Build
+  .hermes/    -> Hermes Agent
   .kiro/      -> Kiro
   .opencode/  -> OpenCode
   .pi/        -> Pi
@@ -621,22 +701,18 @@ async function build() {
 
     const rootManifest = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, '.claude-plugin/plugin.json'), 'utf-8'));
     const claudeAgentsSrc = path.join(DIST_DIR, 'claude-code', '.claude', 'agents');
-    const pluginAgentEntries = fs.existsSync(claudeAgentsSrc)
-      ? fs.readdirSync(claudeAgentsSrc)
-          .filter(file => file.endsWith('.md'))
-          .sort()
-          .map(file => `./agents/${file}`)
-      : [];
     // Trailing slash on the skills path matches the documented schema in
     // code.claude.com/docs/en/plugins-reference. Issue #86 has 3 reporters
     // converging on "add trailing slash to fix slash commands not registering";
     // the docs schema example consistently uses `"./custom/skills/"` form.
     const pluginManifest = { ...rootManifest, skills: './skills/' };
-    if (pluginAgentEntries.length) {
-      pluginManifest.agents = pluginAgentEntries;
-    } else {
-      delete pluginManifest.agents;
-    }
+    // No `agents` key: Claude Code discovers agents/*.md by itself, and the
+    // identifier it uses is the file name. Declaring the key as an array of
+    // file paths makes it load ZERO agents, so the four shipped subagents were
+    // never reachable. The other plausible shapes are worse: a string, or an
+    // array containing a directory, and the whole plugin fails to load.
+    // Omitting the key is the only shape that works.
+    delete pluginManifest.agents;
     fs.mkdirSync(pluginManifestDir, { recursive: true });
     fs.writeFileSync(
       path.join(pluginManifestDir, 'plugin.json'),
@@ -702,6 +778,10 @@ async function build() {
   // match root plugin.json so marketplace installs never ship a stale version.
   const versionErrors = validatePluginVersions(ROOT_DIR);
 
+  // Guard the generated plugin manifest's shape: a key the Claude Code loader
+  // does not honor (like the agents array, PR #494) ships silently broken.
+  const manifestShapeErrors = validatePluginManifestShape(ROOT_DIR);
+
   // Scan user-facing copy for AI tells (em dashes, marketing fluff, denylisted phrases)
   const proseErrors = validateProse(ROOT_DIR);
 
@@ -709,7 +789,11 @@ async function build() {
   // that has no technical reading. Hardening repetition is intentionally allowed.
   const skillProseErrors = validateSkillProse(ROOT_DIR);
 
-  if (countErrors > 0 || versionErrors > 0 || proseErrors > 0 || skillProseErrors > 0) {
+  // Placeholder values are full sentences; a mid-sentence splice ships broken
+  // guidance to every provider at once.
+  const askSiteErrors = validateAskInstructionSites(ROOT_DIR);
+
+  if (countErrors > 0 || versionErrors > 0 || manifestShapeErrors > 0 || proseErrors > 0 || skillProseErrors > 0 || askSiteErrors > 0) {
     process.exit(1);
   }
 

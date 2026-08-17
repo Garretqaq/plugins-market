@@ -10,7 +10,7 @@
  * gracefully when impeccable.style is unreachable.
  */
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import { mkdtempSync, existsSync, readdirSync, readFileSync, mkdirSync, writeFileSync, rmSync, lstatSync, realpathSync, readlinkSync, symlinkSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -719,6 +719,64 @@ describe('skills install/update: local universal bundle e2e', () => {
     rmSync(home, { recursive: true, force: true });
   }, 15000);
 
+  test('install completion says /impeccable init runs in the agent chat, not the terminal (#472)', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-install-472-msg-'));
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-install-472-msg-'));
+    execSync('git init', { cwd: tmp });
+    const bundleRoot = createFakeUniversalBundle(tmp, ['.claude']);
+
+    const output = run('install -y --providers=claude --no-hooks', {
+      cwd: tmp,
+      env: { ...process.env, HOME: home, IMPECCABLE_BUNDLE_PATH: bundleRoot },
+    });
+
+    expect(output).toContain("type /impeccable init in your AI coding agent's chat (not in this terminal)");
+
+    rmSync(tmp, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+  }, 15000);
+
+  test('`impeccable init` in the shell points at the agent chat instead of "Unknown command" (#472)', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-init-472-'));
+
+    let error;
+    try {
+      run('init', { cwd: tmp, stdio: 'pipe' });
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).toBeDefined();
+    expect(error.status).toBe(1);
+    const stderr = String(error.stderr);
+    expect(stderr).toContain("Type /impeccable init in your AI coding agent's chat");
+    expect(stderr).not.toContain('Unknown command');
+
+    rmSync(tmp, { recursive: true, force: true });
+  }, 15000);
+
+  test('a real path named init still routes to detect, not the #472 guidance', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-init-path-472-'));
+    mkdirSync(join(tmp, 'init'), { recursive: true });
+    writeFileSync(join(tmp, 'init', 'page.html'), '<!doctype html><html><head><title>t</title></head><body><p>hello</p></body></html>\n');
+
+    // Detect exits 0 on a clean scan and 2 when findings surface; either way it
+    // must be the detector answering, not the init redirect. --json makes that
+    // positive: the detector always prints a JSON findings array.
+    let output = '';
+    try {
+      output = run('init --json', { cwd: tmp, stdio: 'pipe' });
+    } catch (e) {
+      output = `${e.stdout || ''}${e.stderr || ''}`;
+    }
+
+    expect(output.trim().startsWith('[')).toBe(true);
+    expect(output).not.toContain('is not a CLI command');
+    expect(output).not.toContain('Unknown command');
+
+    rmSync(tmp, { recursive: true, force: true });
+  }, 60000);
+
   test('formats detected harnesses as concise source-to-target rows', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'imp-test-detect-lines-'));
     const home = mkdtempSync(join(tmpdir(), 'imp-home-detect-lines-'));
@@ -784,6 +842,47 @@ describe('skills install/update: local universal bundle e2e', () => {
     const codexHooks = readFileSync(join(tmp, '.codex', 'hooks.json'), 'utf8');
     expect(codexHooks).toContain('.agents/skills/impeccable/scripts/hook.mjs');
     expect(codexHooks).not.toContain('.codex/skills/impeccable/scripts/hook.mjs');
+
+    rmSync(tmp, { recursive: true, force: true });
+  }, 15000);
+
+  test('installs Antigravity skills into .agent/ with --providers=antigravity', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-antigravity-install-'));
+    execSync('git init', { cwd: tmp });
+    const bundleRoot = createFakeUniversalBundle(tmp, ['.agent']);
+
+    const output = run('skills install -y --providers=antigravity --no-hooks', {
+      cwd: tmp,
+      env: { ...process.env, IMPECCABLE_BUNDLE_PATH: bundleRoot },
+    });
+    expect(output).toContain('Done!');
+
+    const skillDir = join(tmp, '.agent', 'skills', 'impeccable');
+    expect(existsSync(join(skillDir, 'SKILL.md'))).toBe(true);
+    expect(readFileSync(join(skillDir, 'SKILL.md'), 'utf8')).toContain('Local deterministic bundle for .agent.');
+    expect(existsSync(join(skillDir, 'scripts', 'context.mjs'))).toBe(true);
+
+    rmSync(tmp, { recursive: true, force: true });
+  }, 15000);
+
+  test('updates stale Antigravity skills at .agent/ from the local bundle', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-antigravity-update-'));
+    execSync('git init', { cwd: tmp });
+    const bundleRoot = createFakeUniversalBundle(tmp, ['.agent']);
+
+    const skillDir = join(tmp, '.agent', 'skills', 'impeccable');
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(join(skillDir, 'SKILL.md'), '---\nname: impeccable\nstale: true\n---\nOld content.\n');
+
+    const output = run('skills update -y --no-hooks', {
+      cwd: tmp,
+      env: { ...process.env, IMPECCABLE_BUNDLE_PATH: bundleRoot },
+    });
+    expect(output).toContain('Updated');
+
+    const content = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
+    expect(content).not.toContain('stale: true');
+    expect(content).toContain('version: 9.9.9-local');
 
     rmSync(tmp, { recursive: true, force: true });
   }, 15000);
@@ -1405,6 +1504,57 @@ describe('skills install/update: local universal bundle e2e', () => {
     rmSync(tmp, { recursive: true, force: true });
   }, 15000);
 
+  test('explicit --providers installs a missing provider without --force (#500)', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-explicit-missing-'));
+    execSync('git init', { cwd: tmp });
+    const bundleRoot = createFakeUniversalBundle(tmp, ['.claude', '.cursor']);
+
+    // Seed an existing .claude install; .cursor has nothing yet.
+    const skillDir = join(tmp, '.claude', 'skills', 'impeccable');
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(join(skillDir, 'SKILL.md'), '---\nname: impeccable\nversion: 9.9.9-local\n---\nSeeded install.\n');
+
+    const output = run('skills install -y --providers=cursor --no-hooks', {
+      cwd: tmp,
+      env: { ...process.env, IMPECCABLE_BUNDLE_PATH: bundleRoot },
+    });
+
+    expect(output).toContain('Installed impeccable into: .cursor');
+    expect(readFileSync(join(tmp, '.cursor', 'skills', 'impeccable', 'SKILL.md'), 'utf8')).toContain('version: 9.9.9-local');
+    // The unselected .claude install is left alone.
+    expect(readFileSync(join(skillDir, 'SKILL.md'), 'utf8')).toContain('Seeded install.');
+
+    rmSync(tmp, { recursive: true, force: true });
+  }, 15000);
+
+  test('explicit --providers mixes per-target updates and fresh installs (#500)', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-explicit-mixed-'));
+    execSync('git init', { cwd: tmp });
+    const bundleRoot = createFakeUniversalBundle(tmp, ['.claude', '.cursor']);
+
+    // Stale .claude install; .cursor has nothing yet.
+    const skillDir = join(tmp, '.claude', 'skills', 'impeccable');
+    mkdirSync(join(skillDir, 'scripts'), { recursive: true });
+    writeFileSync(join(skillDir, 'SKILL.md'), '---\nname: impeccable\nstale: .claude\n---\nOld content.\n');
+    writeFileSync(join(skillDir, 'scripts', 'context.mjs'), 'console.log("old script");\n');
+
+    const output = run('skills install -y --providers=claude,cursor', {
+      cwd: tmp,
+      env: { ...process.env, IMPECCABLE_BUNDLE_PATH: bundleRoot },
+    });
+
+    expect(output).toContain('already installed');
+    expect(output).toContain('Updated');
+    expect(output).toContain('Installed impeccable into: .cursor');
+    expect(readFileSync(join(skillDir, 'SKILL.md'), 'utf8')).toContain('version: 9.9.9-local');
+    expect(readFileSync(join(tmp, '.cursor', 'skills', 'impeccable', 'SKILL.md'), 'utf8')).toContain('version: 9.9.9-local');
+    // The freshly installed provider gets its hooks and agents too.
+    expect(existsSync(join(tmp, '.cursor', 'hooks.json'))).toBe(true);
+    expect(existsSync(join(tmp, '.cursor', 'agents', 'impeccable-finish-reviewer.md'))).toBe(true);
+
+    rmSync(tmp, { recursive: true, force: true });
+  }, 15000);
+
   test('skills update --no-hooks refreshes skills without touching malformed hook manifests', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'imp-test-update-no-hooks-'));
     execSync('git init', { cwd: tmp });
@@ -1578,6 +1728,71 @@ describe('copyProviderHooks: hook command path resolution (#399)', () => {
     rmSync(tmp, { recursive: true, force: true });
     rmSync(skillHome, { recursive: true, force: true });
   });
+
+  test('single-quotes an absolute install path that embeds $(...), and the guard is inert under /bin/sh (#476)', () => {
+    // A hook command is re-executed by the harness on every edit. JSON.stringify
+    // is not shell quoting: an install path containing $(...) inside double
+    // quotes would run on each fire. The absolute POSIX form must be
+    // single-quoted so the substitution stays inert.
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-hook-split-'));
+    const skillHome = mkdtempSync(join(tmpdir(), 'imp-hook-$(touch pwned)-'));
+    const bundleDir = createProjectDirBundle(tmp);
+
+    copyProviderHooks(bundleDir, tmp, ['.claude'], { skillRoot: skillHome });
+
+    const raw = readFileSync(join(tmp, '.claude', 'settings.local.json'), 'utf8');
+    // The path appears single-quoted, never double-quoted (which would leave
+    // the substitution live for /bin/sh).
+    expect(raw).toContain(`'${skillHome}`);
+    expect(raw).not.toContain(`"${skillHome}`);
+
+    const commands = claudeHookCommands(join(tmp, '.claude', 'settings.local.json'));
+    expect(commands.length).toBeGreaterThan(0);
+    // End-to-end: actually run each generated guard under /bin/sh from a clean
+    // cwd. The hook script does not exist (skillHome is empty), so `[ ! -f ... ]`
+    // short-circuits and node never runs — and crucially the single-quoted
+    // $(touch pwned) must not execute. Prove it: no `pwned` file appears and the
+    // guard exits 0.
+    if (process.platform !== 'win32') {
+      const runCwd = mkdtempSync(join(tmpdir(), 'imp-hook-run-'));
+      for (const command of commands) {
+        expect(command).toContain('[ ! -f ');
+        expect(command).not.toMatch(/"[^"]*\$\(touch pwned\)/);
+        execFileSync('/bin/sh', ['-c', command], { cwd: runCwd, stdio: 'ignore' });
+      }
+      expect(existsSync(join(runCwd, 'pwned'))).toBe(false);
+      rmSync(runCwd, { recursive: true, force: true });
+    }
+    rmSync(tmp, { recursive: true, force: true });
+    rmSync(skillHome, { recursive: true, force: true });
+  });
+
+  test('the Windows hook form keeps a usable double-quoted absolute path (#533)', () => {
+    // cmd.exe does no $(...) substitution but treats single quotes as literal,
+    // so the Windows command form must keep the absolute path double-quoted or
+    // a space in the install path would split the argument. copyProviderHooks
+    // branches on process.platform, so drive it as win32 in-process.
+    const original = process.platform;
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-hook-win-'));
+    const skillHome = mkdtempSync(join(tmpdir(), 'imp-hook-win-home-'));
+    const bundleDir = createProjectDirBundle(tmp);
+    try {
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+      copyProviderHooks(bundleDir, tmp, ['.claude'], { skillRoot: skillHome });
+    } finally {
+      Object.defineProperty(process, 'platform', { value: original, configurable: true });
+    }
+
+    const absolute = join(skillHome, '.claude', 'skills', 'impeccable', 'scripts', 'hook.mjs');
+    for (const command of claudeHookCommands(join(tmp, '.claude', 'settings.local.json'))) {
+      // Windows guard shape (node -e wrapper) with the absolute path double-quoted.
+      expect(command).toContain(`"${absolute}"`);
+      expect(command).not.toContain(`'${absolute}`);
+      expect(command).toContain('node -e');
+    }
+    rmSync(tmp, { recursive: true, force: true });
+    rmSync(skillHome, { recursive: true, force: true });
+  });
 });
 
 // ─── Update scope resolution (issue #399, part 2) ────────────────────────────
@@ -1724,4 +1939,154 @@ describeRemote('skills install: production universal bundle download', () => {
     expect(skills).toContain('impeccable');
     expect(skills).not.toContain('i-impeccable');
   }, 90000);
+});
+
+describe('hermesGlobalHome resolver (PR #521)', () => {
+  // hermesGlobalHome was added in PR #521 to honor $HERMES_HOME for
+  // profile-scoped installs. The original PR had a P1 bug at lines
+  // 105-111 of cli/bin/commands/skills.mjs: it called `path.resolve` and
+  // `path.sep` but the file only named-imports `resolve` and `sep` from
+  // `node:path`. The ReferenceError was swallowed by the catch block, so
+  // $HERMES_HOME was silently ignored and installs always landed in
+  // ~/.hermes regardless of the active profile.
+  //
+  // These tests exercise the real implementation (via the export
+  // added to the skills.mjs test surface), not a reimplementation.
+
+  // The resolver is internal to skills.mjs. It reads $HERMES_HOME and
+  // returns the home dir it should use for ~/.hermes/skills. We import
+  // it via the public test surface — see the export block at the bottom
+  // of skills.mjs.
+  let hermesGlobalHome;
+
+  beforeAll(async () => {
+    // Dynamic import so the test can use the same surface as the
+    // production code without forcing a re-export gymnastics on the
+    // rest of the test file.
+    const mod = await import('../cli/bin/commands/skills.mjs');
+    hermesGlobalHome = mod.hermesGlobalHome;
+  });
+
+  test('default (no HERMES_HOME) returns <home>/.hermes', () => {
+    // Use a fresh tmp HOME so the test never depends on the dev's real
+    // ~/.hermes leaking through. The `delete env.HERMES_HOME` happens
+    // in the caller; here we just verify the function honors an
+    // explicitly-unset env (process.env is set per test below).
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-hermes-default-'));
+    try {
+      expect(hermesGlobalHome(home)).toBe(join(home, '.hermes'));
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('HERMES_HOME=<home>/.hermes is honored (default profile)', () => {
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-hermes-real-'));
+    const prev = process.env.HERMES_HOME;
+    process.env.HERMES_HOME = join(home, '.hermes');
+    try {
+      // The resolver returns $HERMES_HOME (resolved) when it lives
+      // under the active home. Callers append 'skills'.
+      expect(hermesGlobalHome(home)).toBe(join(home, '.hermes'));
+    } finally {
+      if (prev === undefined) delete process.env.HERMES_HOME;
+      else process.env.HERMES_HOME = prev;
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('HERMES_HOME=<home>/.hermes/profiles/forge is honored (active profile)', () => {
+    // The whole point of the resolver: a Hermes invocation with
+    // HERMES_HOME pointing at an active profile should install into
+    // that profile's skills dir, not the default ~/.hermes. The
+    // original bug had install/update/check landing in ~/.hermes for
+    // every profile, which is the cross-profile data-corruption class
+    // that hermes_constants.py's active_profile fallback warning is
+    // designed to detect.
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-hermes-profile-'));
+    const prev = process.env.HERMES_HOME;
+    process.env.HERMES_HOME = join(home, '.hermes', 'profiles', 'forge');
+    try {
+      const resolved = hermesGlobalHome(home);
+      expect(resolved).toBe(join(home, '.hermes', 'profiles', 'forge'));
+      // And critically: it must NOT fall back to the default profile
+      // when an active profile is selected.
+      expect(resolved).not.toBe(join(home, '.hermes'));
+    } finally {
+      if (prev === undefined) delete process.env.HERMES_HOME;
+      else process.env.HERMES_HOME = prev;
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('HERMES_HOME outside the active home is ignored (cross-home leakage guard)', () => {
+    // If the developer's shell has HERMES_HOME=/home/dev/.hermes and a
+    // test runs under HOME=/tmp/imp-home-xxx, the resolver must NOT
+    // pick up the dev's real ~/.hermes. Otherwise test output (and
+    // potentially writes) leak into the developer's working state.
+    // The cross-home guard turns the inherited HERMES_HOME into a
+    // not-set, so the resolver falls back to <home>/.hermes.
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-hermes-xhome-'));
+    const otherHome = mkdtempSync(join(tmpdir(), 'imp-home-hermes-xhome-other-'));
+    const prev = process.env.HERMES_HOME;
+    process.env.HERMES_HOME = join(otherHome, '.hermes', 'profiles', 'main');
+    try {
+      // HERMES_HOME is set but it doesn't sit under `home`, so the
+      // resolver should treat it as not-set and return <home>/.hermes.
+      expect(hermesGlobalHome(home)).toBe(join(home, '.hermes'));
+    } finally {
+      if (prev === undefined) delete process.env.HERMES_HOME;
+      else process.env.HERMES_HOME = prev;
+      rmSync(home, { recursive: true, force: true });
+      rmSync(otherHome, { recursive: true, force: true });
+    }
+  });
+
+  test('HOME_SKILLS_DIR_OVERRIDES[".hermes"] returns <HERMES_HOME>/skills under an active profile', async () => {
+    // Integration check: the resolver is wired through the override
+    // map, so this is what the install path actually consumes. The
+    // import is cached across the suite (ESM module singleton), so
+    // the same `hermesGlobalHome` from the unit tests above applies
+    // here. We assert inside the async block so process.env is still
+    // set when the override function reads it (the unit-test version
+    // returns synchronously, but this one uses async import to share
+    // the module reference).
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-hermes-override-'));
+    const prev = process.env.HERMES_HOME;
+    process.env.HERMES_HOME = join(home, '.hermes', 'profiles', 'savant');
+    try {
+      const mod = await import('../cli/bin/commands/skills.mjs');
+      const override = mod.HOME_SKILLS_DIR_OVERRIDES['.hermes'];
+      expect(override(home)).toBe(join(home, '.hermes', 'profiles', 'savant', 'skills'));
+    } finally {
+      if (prev === undefined) delete process.env.HERMES_HOME;
+      else process.env.HERMES_HOME = prev;
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test('end-to-end: --scope=user --providers=hermes with HERMES_HOME=profile lands in the active profile', () => {
+    // The full pipeline: drive the real CLI under a controlled HOME and
+    // HERMES_HOME. This catches any regression that breaks the wiring
+    // between hermesGlobalHome and the install path (e.g. if a future
+    // refactor moves the override out of HOME_SKILLS_DIR_OVERRIDES, or
+    // if copyProviderSkills stops reading from it).
+    const tmp = mkdtempSync(join(tmpdir(), 'imp-test-hermes-e2e-'));
+    const home = mkdtempSync(join(tmpdir(), 'imp-home-hermes-e2e-'));
+    execSync('git init', { cwd: tmp });
+    const bundleRoot = createFakeUniversalBundle(tmp, ['.hermes']);
+    const baseEnv = { ...process.env, HOME: home, IMPECCABLE_BUNDLE_PATH: bundleRoot };
+    delete baseEnv.HERMES_HOME;
+    const profileDir = join(home, '.hermes', 'profiles', 'forge');
+    const env = { ...baseEnv, HERMES_HOME: profileDir };
+
+    run('skills install -y --providers=hermes --scope=user --no-hooks', { cwd: tmp, env });
+
+    // Landed in the active profile, not the default ~/.hermes.
+    expect(existsSync(join(profileDir, 'skills', 'impeccable', 'SKILL.md'))).toBe(true);
+    expect(existsSync(join(home, '.hermes', 'skills', 'impeccable', 'SKILL.md'))).toBe(false);
+
+    rmSync(tmp, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+  }, 20000);
 });

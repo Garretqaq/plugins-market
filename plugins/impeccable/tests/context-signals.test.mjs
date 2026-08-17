@@ -76,6 +76,49 @@ describe('gatherSignals', () => {
     assert.equal(s.critique.latest.slug, 'home');
   });
 
+  it('reads the documented critique snapshot metadata keys', async () => {
+    write('.impeccable/critique/2026-05-02T10-00-00Z__pricing.md',
+      '---\nslug: pricing\ntotal_score: 24\np0_count: 2\np1_count: 5\ntimestamp: 2026-05-02T10-00-00Z\n---\nbody\n');
+    const s = await gatherSignals(scratch);
+    assert.equal(s.critique.latest.score, 24);
+    assert.equal(s.critique.latest.p0, 2);
+    assert.equal(s.critique.latest.p1, 5);
+  });
+
+  it('reports missing critique metrics as null', async () => {
+    write('.impeccable/critique/2026-05-02T10-00-00Z__pricing.md',
+      '---\nslug: pricing\ntimestamp: 2026-05-02T10-00-00Z\n---\nbody\n');
+    const s = await gatherSignals(scratch);
+    assert.equal(s.critique.latest.score, null);
+    assert.equal(s.critique.latest.p0, null);
+    assert.equal(s.critique.latest.p1, null);
+  });
+
+  it('reports empty and invalid critique metrics as null', async () => {
+    write('.impeccable/critique/2026-05-02T10-00-00Z__pricing.md',
+      '---\nslug: pricing\ntotal_score: \np0_count:   \np1_count: nope\ntimestamp: 2026-05-02T10-00-00Z\n---\nbody\n');
+    const s = await gatherSignals(scratch);
+    assert.equal(s.critique.latest.score, null);
+    assert.equal(s.critique.latest.p0, null);
+    assert.equal(s.critique.latest.p1, null);
+  });
+
+  it('reads the newest critique snapshot across target slugs', async () => {
+    write('.impeccable/critique/2026-05-01T10-00-00Z__home.md',
+      '---\nslug: home\nscore: 6\np0: 1\np1: 3\ntimestamp: 2026-05-01T10-00-00Z\n---\nbody\n');
+    write('.impeccable/critique/2026-05-02T10-00-00Z__pricing.md',
+      '---\nslug: pricing\nscore: 9\np0: 0\np1: 1\ntimestamp: 2026-05-02T10-00-00Z\n---\nbody\n');
+    write('.impeccable/critique/ignore.md', '# Critique ignores\n');
+    write('.impeccable/critique/9999-not-a-snapshot.md', '# Draft\n');
+    const s = await gatherSignals(scratch);
+    assert.equal(s.critique.latest.slug, 'pricing');
+    assert.equal(s.critique.latest.score, 9);
+    assert.equal(
+      s.critique.latest.file,
+      '.impeccable/critique/2026-05-02T10-00-00Z__pricing.md',
+    );
+  });
+
   it('handles a non-git dir without throwing', async () => {
     const s = await gatherSignals(scratch);
     assert.equal(s.git.isRepo, false);

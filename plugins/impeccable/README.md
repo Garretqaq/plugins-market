@@ -1,6 +1,6 @@
 # Impeccable
 
-Design guidance for AI coding agents. 1 skill, 23 commands, live browser iteration, and 60 deterministic detector rules for AI-generated frontend design.
+Design guidance for AI coding agents. 1 skill, 23 commands, live browser iteration, and 59 deterministic detector rules for AI-generated frontend design.
 
 > **Quick start:** From your project root, run `npx impeccable install`, then run `/impeccable init` inside your AI coding tool. Full docs: [impeccable.style](https://impeccable.style).
 
@@ -13,7 +13,7 @@ Every model trained on the same SaaS templates. Skip the guidance and you get th
 Impeccable adds:
 - **One setup flow.** `/impeccable init` writes `PRODUCT.md` and offers `DESIGN.md`, so later commands know the audience, brand/product lane, voice, anti-references, colors, type, and components.
 - **23 commands.** A shared design vocabulary with your AI: `polish`, `audit`, `critique`, `distill`, `animate`, `bolder`, `quieter`, and more.
-- **60 deterministic detector rules** plus LLM-only critique checks. The CLI and browser extension run the deterministic rules with no LLM and no API key.
+- **59 deterministic detector rules** plus LLM-only critique checks. The CLI and browser extension run the deterministic rules with no LLM and no API key.
 
 ## What's Included
 
@@ -270,6 +270,16 @@ cp -r dist/grok/.grok/skills/* ~/.grok/skills/
 
 > Prefer `npx impeccable install --providers=grok` or `grok plugin install pbakaus/impeccable#plugin --trust` so the design hook installs too. Project hooks need `/hooks-trust` (or `--trust`) once per folder.
 
+**Google Antigravity:**
+```bash
+# Project-specific
+cp -r dist/antigravity/.agent your-project/
+
+# Or global (applies to all projects)
+mkdir -p ~/.gemini/config/skills
+cp -r dist/antigravity/.agent/skills/* ~/.gemini/config/skills/
+```
+
 ## Usage
 
 Once installed, every command runs through the single `/impeccable` skill:
@@ -351,6 +361,18 @@ On an interactive `install`/`update`, Impeccable explains the hook and offers to
 
 For debugging, set `hook.auditLog` in `.impeccable/config.json` to a path (or the legacy `IMPECCABLE_HOOK_LOG` env var) to write one NDJSON line per hook invocation. Leave it unset for normal use.
 
+## Build path: comp-first or code-first
+
+When a new surface gets designed, Impeccable either generates a full-fidelity comp first and builds to match it, or builds straight in code with the ambition written into the direction contract and checked at the finish. Comp-first composes bolder and takes longer; code-first is leaner and faster. `/impeccable init` asks once and records the answer as `buildPath` in `.impeccable/config.json`:
+
+```json
+{ "buildPath": "comp" }
+```
+
+The values are `comp` and `code`, and nothing else is read. Set it in the gitignored `.impeccable/config.local.json` to override the team's committed value on one machine, which is what you want when your harness has no image generation. In a monorepo, commit it once at the repo root and any workspace that wants something else sets its own. The choice appears at all only where image generation is available, since without it there is nothing to comp.
+
+You do not have to re-run `init` to set it on a project that predates the setting, and you do not have to edit the file by hand either. Whatever is recorded is a default rather than a lock: every decision page carries a footer toggle, and flipping it binds that session only. Flip it on a project that has recorded nothing and Impeccable asks once, after the round, whether to keep it, then writes your answer. That is the whole migration path for an existing project: use the toggle when the default is wrong, and answer the question that follows.
+
 Codex requires one platform step that Impeccable cannot safely skip: open `/hooks` after install or update and approve the project hook. There is no Codex marketplace/plugin install flow for this hook.
 
 Full hook docs: [impeccable.style/docs/hooks](https://impeccable.style/docs/hooks).
@@ -377,7 +399,7 @@ npx impeccable ignores add-file "src/legacy/**"
 npx impeccable ignores add-value overused-font Inter --reason "Brand font"
 ```
 
-The detector catches 60 deterministic issues across AI slop (side-tab borders, purple gradients, bounce easing, dark glows) and general design quality (line length, cramped padding, small touch targets, skipped headings, and more).
+The detector catches 59 deterministic issues across AI slop (side-tab borders, purple gradients, bounce easing, dark glows) and general design quality (line length, cramped padding, small touch targets, skipped headings, and more).
 
 By default, `detect` respects the same `.impeccable/config.json` and `.impeccable/config.local.json` detector config as the design hook: `detector.ignoreRules`, `detector.ignoreFiles`, `detector.ignoreValues`, and `detector.designSystem.enabled`. Hook lifecycle settings such as `hook.enabled` only affect automatic hook execution.
 
@@ -400,6 +422,7 @@ Full detector docs: [impeccable.style/docs/detector](https://impeccable.style/do
 - [Rovo Dev](https://www.atlassian.com/software/rovo)
 - [Qoder](https://qoder.com)
 - [Mistral Vibe](https://docs.mistral.ai/vibe/code/overview)
+- [Google Antigravity](https://antigravity.google)
 
 ## Community & Ecosystem
 

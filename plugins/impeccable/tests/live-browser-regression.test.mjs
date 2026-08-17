@@ -18,6 +18,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { LIVE_UI_COMPONENT_IDS, LIVE_UI_PREFIX } from '../skill/scripts/live/ui-surfaces.mjs';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LIVE_BROWSER = path.resolve(
   __dirname,
@@ -1280,9 +1282,12 @@ describe('live-browser.js regression guards', () => {
       /if \(e\.key === 'Enter'\) \{\s*e\.preventDefault\(\);\s*submitSteerMessage\(\);/,
       'keyboard submit stays',
     );
-    assert.match(
-      SOURCE,
-      /PREFIX \+ '-page-chat-send'\] \}/,
+    // The inventory used to be an inline literal here, so this used to be a
+    // source-text match on the surface entry. It now lives in
+    // live/ui-surfaces.mjs (importable, one definition), so assert membership
+    // in the real list instead of the shape of the line that declares it.
+    assert.ok(
+      LIVE_UI_COMPONENT_IDS.includes(`${LIVE_UI_PREFIX}-page-chat-send`),
       'the Send control must be registered as live UI chrome so it is excluded from capture',
     );
   });
@@ -1331,6 +1336,22 @@ describe('live-browser.js regression guards', () => {
       /msgDiv\('empty', 'No design system data available\.'\)/,
       'the bare message may only survive as the genuinely-absent branch of designEmptyMessage',
     );
+  });
+
+  it('includes named rules from every canonical narrative section', () => {
+    const narrativeStart = SOURCE.indexOf('  function synthesizeNarrative(parsed) {');
+    const narrativeEnd = SOURCE.indexOf('\n  function renderColorTiles', narrativeStart);
+    assert.notEqual(narrativeStart, -1, 'synthesizeNarrative must exist');
+    assert.notEqual(narrativeEnd, -1, 'synthesizeNarrative must end before renderColorTiles');
+    const narrativeSource = SOURCE.slice(narrativeStart, narrativeEnd);
+
+    for (const section of ['colors', 'typography', 'layout', 'elevation', 'shapes']) {
+      assert.match(
+        narrativeSource,
+        new RegExp(`md\\.${section}\\?\\.rules[^\\n]*section: '${section}'`),
+        `the design panel must carry named rules tagged with their ${section} section`,
+      );
+    }
   });
 
   it('editing focus timeout does not read a stale inline edit row', () => {
