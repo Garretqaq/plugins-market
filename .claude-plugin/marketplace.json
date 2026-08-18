@@ -16,9 +16,9 @@
         "best-practices",
         "workflows"
       ],
-      "version": "6.2.0",
+      "version": "6.3.0",
       "origin": "https://github.com/obra/superpowers.git",
-      "sourceHash": "531d4cb629b22194335cdb33ba8c18f3a7e6b1a021a66aa6e481735be18850be"
+      "sourceHash": "21219529a4e224bcb27baf8816b039c8bf7c6673"
     },
     {
       "name": "superpowers-zh",
