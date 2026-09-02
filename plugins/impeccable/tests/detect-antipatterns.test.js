@@ -16,6 +16,7 @@ import * as domutils from 'domutils';
 import { StaticDocument } from '../cli/engine/engines/static-html/css-cascade.mjs';
 import { filterByScopes } from '../cli/engine/registry/antipatterns.mjs';
 import {
+  checkFlatTypeHierarchySamples,
   checkColors,
   checkElementTextOverflowDOM,
   checkHeroEyebrow,
@@ -382,6 +383,228 @@ describe('detectText — broken images in source comments', () => {
 
     expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
   });
+
+  test('ignores img tags in Astro style block comments', () => {
+    const source = [
+      '---',
+      'const title = "Hero";',
+      '---',
+      '<style>',
+      '  /*',
+      '   * Example markup: <img src="">',
+      '   */',
+      '  .hero { color: red; }',
+      '</style>',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.astro');
+
+    expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
+  });
+
+  test('ignores img tags in Astro HTML comments', () => {
+    const source = [
+      '---',
+      'const title = "Hero";',
+      '---',
+      '<!-- <img src="" alt="Comment-only image" /> -->',
+      '<img src="/logo.png" alt="Logo" />',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.astro');
+
+    expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
+  });
+
+  test('ignores img tags in Astro frontmatter line comments', () => {
+    const source = [
+      '---',
+      '// <img src="" alt="Comment-only image" />',
+      'const site = "https://example.com";',
+      '---',
+      '<img src="/logo.png" alt="Logo" />',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.astro');
+
+    expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
+  });
+
+  test('ignores img tags in CSS block comments', () => {
+    const source = [
+      '/*',
+      ' * Example markup: <img src="">',
+      ' */',
+      '.hero { color: red; }',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.css');
+
+    expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
+  });
+
+  test('still detects real img tags after an HTML comment in Astro', () => {
+    const source = [
+      '---',
+      'const title = "Hero";',
+      '---',
+      '<!-- decorative only -->',
+      '<img src="" alt="Empty source" />',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.astro');
+
+    const broken = findings.filter(r => r.antipattern === 'broken-image');
+    expect(broken).toHaveLength(1);
+    expect(broken[0].line).toBe(5);
+  });
+
+  test('does not blank https URLs in Astro frontmatter', () => {
+    const source = [
+      '---',
+      'const site = "https://example.com/logo.png";',
+      '---',
+      '<img src="" alt="Empty source" />',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.astro');
+
+    expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(1);
+  });
+
+  test('keeps same-line img visible after a bare https URL in Astro markup', () => {
+    const source = '<p>https://example.com <img src="" alt="Empty source" /></p>';
+
+    const findings = detectText(source, 'hero.astro');
+
+    expect(findings.filter(r => r.antipattern === 'broken-image')).toHaveLength(1);
+  });
+
+  test('preserves line numbers after comment blanking in Astro', () => {
+    const source = [
+      '---',
+      'const title = "Hero";',
+      '---',
+      '<!-- <img src="" alt="Comment-only image" /> -->',
+      '<p>Intro copy</p>',
+      '<img src="" alt="Empty source" />',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.astro');
+
+    const broken = findings.filter(r => r.antipattern === 'broken-image');
+    expect(broken).toHaveLength(1);
+    expect(broken[0].line).toBe(6);
+  });
+
+  test('does not treat comment markers inside script strings as markup comments', () => {
+    const htmlDelimiters = [
+      '<script>const open = "<!--";</script>',
+      '<img>',
+      '<script>const close = "-->";</script>',
+    ].join('\n');
+    const cssDelimiters = [
+      '<script>const open = "/*";</script>',
+      '<img>',
+      '<script>const close = "*/";</script>',
+    ].join('\n');
+
+    for (const filePath of ['hero.astro', 'hero.vue', 'hero.svelte']) {
+      expect(detectText(htmlDelimiters, filePath).filter(r => r.antipattern === 'broken-image')).toHaveLength(1);
+      expect(detectText(cssDelimiters, filePath).filter(r => r.antipattern === 'broken-image')).toHaveLength(1);
+    }
+  });
+
+  test('ignores preprocessor line comments in stylesheets', () => {
+    const source = '// font-family: Inter\n.hero { color: red; }';
+
+    for (const filePath of ['hero.scss', 'hero.sass', 'hero.less']) {
+      expect(detectText(source, filePath).filter(r => r.antipattern === 'overused-font')).toHaveLength(0);
+    }
+  });
+
+  test('still detects live font-family after a preprocessor line comment', () => {
+    const source = '// skip this\n.hero { font-family: Inter; }';
+
+    const findings = detectText(source, 'hero.scss').filter(r => r.antipattern === 'overused-font');
+    expect(findings).toHaveLength(1);
+    expect(findings[0].line).toBe(2);
+  });
+
+  test('does not blank https URLs in SCSS', () => {
+    const source = '.hero { background: url(https://example.com/i.png); }\n.hero { font-family: Inter; }';
+
+    const findings = detectText(source, 'hero.scss').filter(r => r.antipattern === 'overused-font');
+    expect(findings).toHaveLength(1);
+    expect(findings[0].line).toBe(2);
+  });
+
+  test('ignores frontmatter comments after a --- line inside a template literal', () => {
+    const source = [
+      '---',
+      'const md = `',
+      '---',
+      '`;',
+      '// <img src="" alt="Comment-only image" />',
+      '---',
+      '<div>ok</div>',
+    ].join('\n');
+
+    expect(detectText(source, 'hero.astro').filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
+  });
+
+  test('ignores preprocessor line comments in component style blocks', () => {
+    const source = [
+      '<style lang="scss">',
+      '// font-family: Inter',
+      '.hero { color: red; }',
+      '</style>',
+    ].join('\n');
+
+    for (const filePath of ['hero.astro', 'hero.vue', 'hero.svelte']) {
+      expect(detectText(source, filePath).filter(r => r.antipattern === 'overused-font')).toHaveLength(0);
+    }
+  });
+
+  test('still detects live font-family after a style-block line comment', () => {
+    const source = [
+      '<style lang="scss">',
+      '// skip this',
+      '.hero { font-family: Inter; }',
+      '</style>',
+    ].join('\n');
+
+    const findings = detectText(source, 'hero.vue').filter(r => r.antipattern === 'overused-font');
+    expect(findings).toHaveLength(1);
+    expect(findings[0].line).toBe(3);
+  });
+
+  test('ignores frontmatter comments after a regex literal that contains quotes', () => {
+    const source = [
+      '---',
+      'const re = /["\']/;',
+      '// <img src="" alt="Comment-only image" />',
+      '---',
+      '<div>ok</div>',
+    ].join('\n');
+
+    expect(detectText(source, 'hero.astro').filter(r => r.antipattern === 'broken-image')).toHaveLength(0);
+  });
+
+  test('keeps live font-family after a protocol-relative URL in SCSS', () => {
+    const sources = [
+      '.hero { background: url( //cdn.example.com/i.png); font-family: Inter; }',
+      '.hero { background: url(#{$prefix}//cdn.example.com/i.png); font-family: Inter; }',
+    ];
+
+    for (const source of sources) {
+      expect(detectText(source, 'hero.scss').filter(r => r.antipattern === 'overused-font')).toHaveLength(1);
+    }
+    expect(detectText(
+      '.hero { background: url(@{prefix}//cdn.example.com/i.png); font-family: Inter; }',
+      'hero.less',
+    ).filter(r => r.antipattern === 'overused-font')).toHaveLength(1);
+  });
 });
 
 describe('detectText — CSS borders', () => {
@@ -452,17 +675,88 @@ describe('detectText — overused fonts', () => {
   });
 });
 
-describe('detectText — flat type hierarchy', () => {
-  test('flags sizes too close together', () => {
-    const page = '<!DOCTYPE html><html><style>h1{font-size:18px}h2{font-size:16px}h3{font-size:15px}p{font-size:14px}.s{font-size:13px}</style></html>';
-    const f = detectText(page, 'test.html');
-    expect(f.some(r => r.antipattern === 'flat-type-hierarchy')).toBe(true);
+describe('detectHtml — overused fonts system stack', () => {
+  test('Inter before a system stack still flags overused-font', async () => {
+    const page = `<!DOCTYPE html><html><head><style>
+      body { font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; }
+      h1 { font-size: 34px; }
+      p { font-size: 15px; }
+    </style></head><body><h1>Hello</h1><p>world</p></body></html>`;
+    await withStaticFixture({ 'index.html': page }, async ({ file }) => {
+      const f = await detectHtml(file);
+      expect(f.some(r => r.antipattern === 'overused-font' && /inter/i.test(r.snippet))).toBe(true);
+    });
   });
 
-  test('passes good hierarchy', () => {
+  test('checkPageTypography regex path skips Roboto in system stack', () => {
+    const html = `<!DOCTYPE html><html><head><style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    </style></head><body><h1>Hello</h1><p>world</p></body></html>`;
+    const doc = {
+      styleSheets: [],
+      documentElement: { outerHTML: html },
+      querySelectorAll() { return []; },
+    };
+    const win = { getComputedStyle() { return { fontSize: '16px' }; } };
+    const f = checkPageTypography(doc, win);
+    expect(f.filter(r => r.id === 'overused-font')).toHaveLength(0);
+  });
+});
+
+describe('detectText — flat type hierarchy', () => {
+  test('source-only declarations abstain because rendered role frequency is unknowable', () => {
+    const page = '<!DOCTYPE html><html><style>h1{font-size:18px}h2{font-size:16px}h3{font-size:15px}p{font-size:14px}.s{font-size:13px}</style></html>';
+    const f = detectText(page, 'test.html');
+    expect(f.filter(r => r.antipattern === 'flat-type-hierarchy')).toHaveLength(0);
+  });
+
+  test('also abstains when source declarations suggest a wide hierarchy', () => {
     const page = '<!DOCTYPE html><html><style>h1{font-size:48px}h2{font-size:32px}p{font-size:16px}.s{font-size:12px}</style></html>';
     const f = detectText(page, 'test.html');
     expect(f.filter(r => r.antipattern === 'flat-type-hierarchy')).toHaveLength(0);
+  });
+});
+
+describe('flat-type-hierarchy — role analysis', () => {
+  test('uses the dominant size within each semantic role', () => {
+    const findings = checkFlatTypeHierarchySamples([
+      { role: 'h1', size: 18 },
+      { role: 'h2', size: 16 },
+      { role: 'h2', size: 16 },
+      { role: 'h2', size: 40 },
+      ...Array.from({ length: 20 }, () => ({ role: 'body', size: 14 })),
+      { role: 'body', size: 10 },
+    ]);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].snippet).toContain('body 14px, h2 16px, h1 18px');
+    expect(findings[0].snippet).not.toContain('40px');
+  });
+
+  test('passes when one adjacent role step reaches the documented threshold', () => {
+    const findings = checkFlatTypeHierarchySamples([
+      { role: 'h1', size: 25 },
+      { role: 'h2', size: 20 },
+      { role: 'body', size: 16 },
+    ]);
+    expect(findings).toHaveLength(0);
+  });
+
+  test('abstains when fewer than three semantic roles render', () => {
+    const findings = checkFlatTypeHierarchySamples([
+      { role: 'h1', size: 18 },
+      ...Array.from({ length: 100 }, () => ({ role: 'body', size: 14 })),
+    ]);
+    expect(findings).toHaveLength(0);
+  });
+
+  test('abstains from a role whose competing sizes have no dominant value', () => {
+    const findings = checkFlatTypeHierarchySamples([
+      { role: 'h1', size: 18 },
+      { role: 'h1', size: 48 },
+      { role: 'h2', size: 16 },
+      { role: 'body', size: 14 },
+    ]);
+    expect(findings).toHaveLength(0);
   });
 });
 
@@ -499,13 +793,13 @@ describe('partials skip page-level checks', () => {
     expect(f.some(r => r.antipattern === 'side-tab')).toBe(true);
   });
 
-  test('regex: full page with flat hierarchy IS flagged', () => {
+  test('regex: full page with declarations-only hierarchy abstains', () => {
     const page = '<!DOCTYPE html><html><head></head><body>\n' +
       '<h1 style="font-size: 18px">h1</h1>\n<h2 style="font-size: 16px">h2</h2>\n' +
       '<p style="font-size: 14px">p</p>\n<span style="font-size: 15px">s</span>\n' +
       '<small style="font-size: 13px">sm</small>\n</body></html>';
     const f = detectText(page, 'index.html');
-    expect(f.some(r => r.antipattern === 'flat-type-hierarchy')).toBe(true);
+    expect(f.filter(r => r.antipattern === 'flat-type-hierarchy')).toHaveLength(0);
   });
 });
 
@@ -1099,6 +1393,81 @@ describe('detectHtml — static HTML/CSS engine', () => {
     expect(findingIds(f)).toContain('side-tab');
   });
 
+  test('resolves root-relative linked stylesheets with cache-busting query', async () => {
+    await withStaticFixture({
+      'index.html': `<!DOCTYPE html><html><head>
+        <link rel="stylesheet" href="/static/app.css?v=3">
+      </head><body><div class="card">Card</div></body></html>`,
+      'static/app.css': '.card { border-left: 5px solid #3b82f6; border-radius: 4px; }',
+    }, async ({ file }) => {
+      const f = await detectHtml(file);
+      expect(findingIds(f)).toContain('side-tab');
+    });
+  });
+
+  test('resolves root-relative linked stylesheets from nested pages via ancestor walk', async () => {
+    await withStaticFixture({
+      'pages/about.html': `<!DOCTYPE html><html><head>
+        <link rel="stylesheet" href="/static/app.css">
+      </head><body><div class="card">Card</div></body></html>`,
+      'static/app.css': '.card { border-left: 5px solid #3b82f6; border-radius: 4px; }',
+    }, async ({ dir }) => {
+      const f = await detectHtml(path.join(dir, 'pages', 'about.html'));
+      expect(findingIds(f)).toContain('side-tab');
+    });
+  });
+
+  test('does not resolve root-relative sheets above the project root', async () => {
+    await withStaticFixture({
+      'project/package.json': '{}',
+      'project/index.html': `<!DOCTYPE html><html><head>
+        <link rel="stylesheet" href="/static/app.css">
+      </head><body><div class="card">Card</div></body></html>`,
+      'static/app.css': '.card { border-left: 5px solid #3b82f6; border-radius: 4px; }',
+    }, async ({ dir }) => {
+      const f = await detectHtml(path.join(dir, 'project', 'index.html'));
+      expect(findingIds(f)).not.toContain('side-tab');
+    });
+  });
+
+  test('does not follow root-relative .. segments out of the page directory', async () => {
+    await withStaticFixture({
+      'project/package.json': '{}',
+      'project/index.html': `<!DOCTYPE html><html><head>
+        <link rel="stylesheet" href="/../outside.css">
+      </head><body><div class="card">Card</div></body></html>`,
+      'outside.css': '.card { border-left: 5px solid #3b82f6; border-radius: 4px; }',
+    }, async ({ dir }) => {
+      const f = await detectHtml(path.join(dir, 'project', 'index.html'));
+      expect(findingIds(f)).not.toContain('side-tab');
+    });
+  });
+
+  test('warns when a linked stylesheet cannot be read', async () => {
+    const writes = [];
+    const origWrite = process.stderr.write.bind(process.stderr);
+    process.stderr.write = (chunk, ...args) => {
+      writes.push(String(chunk));
+      return origWrite(chunk, ...args);
+    };
+    try {
+      await withStaticFixture({
+        'index.html': `<!DOCTYPE html><html><head>
+          <link rel="stylesheet" href="/missing/app.css">
+        </head><body><div>Page</div></body></html>`,
+      }, async ({ file, dir }) => {
+        await detectHtml(file);
+        await detectHtml(file);
+        const msg = writes.join('');
+        const hits = msg.split('could not read linked stylesheet /missing/app.css').length - 1;
+        expect(hits).toBe(2);
+        expect(msg).toContain(`resolved to ${path.join(dir, 'missing', 'app.css')}`);
+      });
+    } finally {
+      process.stderr.write = origWrite;
+    }
+  });
+
   test('gradient-text: a style="" attribute alone carries the page-level flag', async () => {
     await withStaticFixture({
       'index.html': `<!DOCTYPE html><html><head><title>t</title></head><body>
@@ -1599,6 +1968,32 @@ describe('hover contrast + color-mix', () => {
     expect(stops).toHaveLength(2);
   });
 
+  test('parseGradientColors resolves color-mix stops without leaking nested hex', () => {
+    const stops = parseGradientColors('linear-gradient(135deg, color-mix(in srgb, #2d5a4a 92%, #000), color-mix(in srgb, #1a3d32 90%, #000))');
+    expect(stops).toHaveLength(2);
+    expect(stops[0]).toEqual({ r: 41, g: 83, b: 68, a: 1 });
+    expect(stops[1]).toEqual({ r: 23, g: 55, b: 45, a: 1 });
+  });
+
+  test('parseGradientColors does not leak nested hex when color-mix has var()', () => {
+    const stops = parseGradientColors('linear-gradient(135deg, color-mix(in srgb, var(--brand) 92%, #000), color-mix(in srgb, var(--brand-deep) 90%, #000))');
+    expect(stops).toEqual([]);
+  });
+
+  test('parseGradientColors still collects sibling bare hex stops beside color-mix', () => {
+    const stops = parseGradientColors('linear-gradient(color-mix(in srgb, #2d5a4a 92%, #000), #ffffff)');
+    expect(stops).toHaveLength(2);
+    expect(stops[0]).toEqual({ r: 41, g: 83, b: 68, a: 1 });
+    expect(stops[1]).toEqual({ r: 255, g: 255, b: 255, a: 1 });
+  });
+
+  test('parseGradientColors still reads bare hex gradient stops', () => {
+    const stops = parseGradientColors('linear-gradient(#2d5a4a, #000)');
+    expect(stops).toHaveLength(2);
+    expect(stops[0]).toEqual({ r: 45, g: 90, b: 74, a: 1 });
+    expect(stops[1]).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+  });
+
   test('checkHoverContrast flags a failing hover pair on a styled control', () => {
     const f = checkHoverContrast({
       tag: 'a',
@@ -1806,16 +2201,44 @@ describe('codex-grid-background variants', () => {
     expect(grids(css)).toHaveLength(1);
   });
 
-  test('flags single-axis hairline tiled by a px pair cell', () => {
+  test('keeps single-axis hairline tiled by a px pair cell legal', () => {
     const css = `body { background: linear-gradient(90deg, rgba(23,25,24,.035) 1px, transparent 1px) 0 0 / 40px 40px, #f4f1ea; }`;
-    const f = grids(css);
-    expect(f).toHaveLength(1);
-    expect(f[0].snippet).toContain('line-field');
+    expect(grids(css)).toHaveLength(0);
   });
 
   test('keeps percent-tiled single hairlines (data-viz track rules) legal', () => {
     const css = `.span-track { background-image: linear-gradient(90deg, #303532 1px, transparent 1px); background-size: 25% 100%; }`;
     expect(grids(css)).toHaveLength(0);
+  });
+
+  test('keeps 1D dashed dot rules legal', () => {
+    const css = `.dot-rule {
+      height: 5px;
+      background-image: linear-gradient(90deg, rgba(255,255,255,.75) 5px, transparent 5px);
+      background-size: 10px 5px;
+      background-repeat: repeat-x;
+    }`;
+    expect(grids(css)).toHaveLength(0);
+  });
+
+  test('keeps 1D progress rails with dash-period px pair tiles legal', () => {
+    const css = `.progress-rail {
+      background-image: linear-gradient(90deg, #eee 1px, transparent 1px);
+      background-size: 8px 4px;
+      background-repeat: repeat-x;
+    }`;
+    expect(grids(css)).toHaveLength(0);
+  });
+
+  test('regex source engine keeps 1D dot rules legal', () => {
+    const css = `.dot-rule {
+      height: 5px;
+      background-image: linear-gradient(90deg, rgba(255,255,255,.75) 5px, transparent 5px);
+      background-size: 10px 5px;
+      background-repeat: repeat-x;
+    }`;
+    const findings = detectText(css, 'dot-rule.css');
+    expect(findings.filter(f => f.antipattern === 'codex-grid-background')).toHaveLength(0);
   });
 
   test('classic two-axis background-size form still flags', () => {

@@ -7,6 +7,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -19,6 +20,49 @@ import { checkEmDashOveruse } from '../cli/engine/rules/checks.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES = path.join(__dirname, 'fixtures', 'antipatterns');
+
+function isolatedFixtureCases(name) {
+  const source = fs.readFileSync(path.join(FIXTURES, name), 'utf8');
+  const style = source.match(/<style>([\s\S]*?)<\/style>/i)?.[1] || '';
+  const cases = [];
+  for (const match of source.matchAll(/<article\b([^>]*)>([\s\S]*?)<\/article>/gi)) {
+    const attrs = match[1];
+    const caseName = attrs.match(/\bdata-case="([^"]+)"/i)?.[1];
+    const expect = attrs.match(/\bdata-expect="(flag|pass)"/i)?.[1];
+    if (!caseName || !expect) continue;
+    cases.push({
+      caseName,
+      expect,
+      html: `<!DOCTYPE html><html><head><style>${style}</style></head><body><article${attrs}>${match[2]}</article></body></html>`,
+    });
+  }
+  return cases;
+}
+
+describe('flat-type-hierarchy — role and usage fixture (issue #619)', () => {
+  it('flags compressed document roles and passes dense UI/chrome shapes', async () => {
+    const cases = isolatedFixtureCases('flat-type-hierarchy.html');
+    assert.equal(cases.filter(item => item.expect === 'flag').length, 5);
+    assert.equal(cases.filter(item => item.expect === 'pass').length, 6);
+
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'impeccable-flat-type-'));
+    try {
+      for (const [index, item] of cases.entries()) {
+        const file = path.join(tempDir, `case-${index}.html`);
+        fs.writeFileSync(file, item.html);
+        const findings = await detectHtml(file);
+        const flat = findings.filter(finding => finding.antipattern === 'flat-type-hierarchy');
+        if (item.expect === 'flag') {
+          assert.equal(flat.length, 1, `expected "${item.caseName}" to flag: ${JSON.stringify(findings)}`);
+        } else {
+          assert.equal(flat.length, 0, `expected "${item.caseName}" to pass: ${JSON.stringify(flat)}`);
+        }
+      }
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
 
 describe('detectText - Astro structural CSS fixtures', () => {
   const SHOULD_FLAG = [
@@ -269,6 +313,31 @@ describe('detectHtml — static HTML/CSS fixtures', () => {
     assert.equal(
       phantom.length, 0,
       `light text on the mixed wash must not flag: ${phantom.map(r => r.snippet).join('; ')}`,
+    );
+  });
+
+  it('color: nested #000 inside color-mix must not become on #000000', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'color.html'));
+    const light = f.filter(r =>
+      (r.antipattern === 'low-contrast' || r.antipattern === 'gray-on-color') &&
+      /#f7f3ea/i.test(r.snippet || '')
+    );
+    assert.equal(
+      light.length, 0,
+      `light text on the mixed green must not flag: ${light.map(r => r.snippet).join('; ')}`,
+    );
+    const leaked = f.filter(r => /#3d2418 on #000000/i.test(r.snippet || ''));
+    assert.equal(
+      leaked.length, 0,
+      `nested #000 must not become on #000000: ${leaked.map(r => r.snippet).join('; ')}`,
+    );
+    assert.ok(
+      f.some(r =>
+        r.antipattern === 'low-contrast' &&
+        /#3d2418/i.test(r.snippet || '') &&
+        /#17372d|#295344/i.test(r.snippet || '')
+      ),
+      'dark ink on the mixed stop should flag against the mix, not phantom black',
     );
   });
 
@@ -606,6 +675,21 @@ describe('detectHtml — static HTML/CSS fixtures', () => {
   it('typography-should-pass: zero findings', async () => {
     const f = await detectHtml(path.join(FIXTURES, 'typography-should-pass.html'));
     assert.equal(f.length, 0);
+  });
+
+  it('overused-font: flags named primaries and skips system-stack Roboto', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'overused-font.html'));
+    const snippets = f.filter(r => r.antipattern === 'overused-font').map(r => r.snippet).join(' | ');
+    for (const font of ['inter', 'geist', 'montserrat', 'lato']) {
+      assert.match(snippets, new RegExp(`Primary font: ${font}`), `expected flag for ${font}: ${snippets}`);
+    }
+    assert.doesNotMatch(snippets, /roboto/i, `system-stack Roboto must not be primary: ${snippets}`);
+    assert.doesNotMatch(snippets, /arial/i, `system-stack Arial must not be primary: ${snippets}`);
+    assert.equal(
+      f.some(r => r.antipattern === 'flat-type-hierarchy'),
+      false,
+      `overused-font fixture should not contain incidental type findings: ${f.map(r => `${r.antipattern}:${r.snippet}`).join('; ')}`,
+    );
   });
 
   it('design-system: flags only values outside the provided DESIGN.md tokens', async () => {
@@ -1278,6 +1362,14 @@ describe('detectHtml — generated-UI tells', () => {
     }
   });
 
+  it('codex-grid-background: 1D dashed rules and px-pair line-fields stay legal', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'codex-grid-1d-pass.html'));
+    assert.equal(
+      f.filter(r => r.antipattern === 'codex-grid-background').length, 0,
+      `1D tiled hairlines must not flag, got: ${f.filter(r => r.antipattern === 'codex-grid-background').map(r => r.snippet).join('; ')}`,
+    );
+  });
+
   it('gemini-tells: both flag cases surface by default and pass cases stay legal', async () => {
     const findings = await detectHtml(path.join(FIXTURES, 'gemini-tells.html'));
     // Two flag cases: a CSS img:hover{transform} rule and a Tailwind hover:scale on <img>.
@@ -1528,5 +1620,34 @@ describe('detectHtml — dark themes written in modern color syntax', () => {
       hidden.length, 0,
       `no finding may reference the occluded gradient's stops, got: ${hidden.map(r => r.snippet).join('; ')}`,
     );
+  });
+});
+
+describe('detectHtml — organic-clip-path', () => {
+  const SHOULD_FLAG = ['polygon() with 18 vertices', 'polygon() with 21 vertices', 'path() with 6 curve segments'];
+  it('flags organic polygon/path clips and passes geometric clips', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'organic-clip-path.html'));
+    const hits = f.filter(r => r.antipattern === 'organic-clip-path');
+    // arch (18), blob (21), silhouette path, inline blob (21)
+    assert.equal(hits.length, 4, hits.map(h => h.snippet).join('\n'));
+    for (const text of SHOULD_FLAG) {
+      assert.ok(hits.some(h => (h.snippet || '').includes(text)), `expected a finding containing "${text}"`);
+    }
+    // geometric clips never mention themselves
+    for (const h of hits) assert.doesNotMatch(h.snippet, /with [5-9] vertices/);
+  });
+});
+
+describe('detectHtml — buried-raster', () => {
+  it('flags rasters under near-opaque washes and at near-zero opacity, passes tints, blends, and visible textures', async () => {
+    const f = await detectHtml(path.join(FIXTURES, 'buried-raster.html'));
+    const hits = f.filter(r => r.antipattern === 'buried-raster');
+    const snippets = hits.map(h => h.snippet || '');
+    assert.equal(snippets.filter(s => /near-opaque gradient wash/.test(s)).length, 2, snippets.join('\n'));
+    assert.ok(snippets.some(s => /raster background at opacity 0.04 "Grain"/.test(s)), snippets.join('\n'));
+    assert.ok(snippets.some(s => /<img> at opacity 0.05 "Ghost img"/.test(s)), snippets.join('\n'));
+    assert.equal(hits.length, 4, snippets.join('\n'));
+    // the passing shapes never appear
+    assert.ok(!snippets.some(s => /hero\.jpg|opacity 0\.6|multiply|Faint text/.test(s)));
   });
 });

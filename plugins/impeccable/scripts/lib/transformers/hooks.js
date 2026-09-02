@@ -71,7 +71,9 @@ const NODE_MAJOR_FLOOR = 22;
 //   Claude Code / Codex: `systemMessage` on stdout is shown to the user -> notice
 //   Cursor: preToolUse output is permission-shaped and its `user_message`
 //     renders only on DENY, so warning would block the edit    -> probe only
-//   Grok Build: PostToolUse/Stop stdout is ignored outright    -> probe only
+//   Grok Build: PostToolUse stdout is ignored; Stop additionalContext
+//     reaches the model, but the node-version notice has no systemMessage
+//     channel on this harness                                 -> probe only
 //   Copilot: output contract unconfirmed; do not guess a shape -> probe only
 //
 // The clamp avoids `<` and `>` deliberately: Volta's Windows shims run through
@@ -137,9 +139,9 @@ const GROK_PROJECT_HOOK = '.grok/skills/impeccable/scripts/hook.mjs';
 
 export function buildClaudeSettingsManifest() {
   return {
-    description: 'Impeccable design detector: immediate-tier checks after Edit/Write/MultiEdit on UI files, full-rule deep pass on Stop.',
+    description: 'Impeccable design detector: immediate-tier checks after Edit/Write on UI files, full-rule deep pass on Stop.',
     hooks: buildClaudeCompatibleHooks(
-      'Edit|Write|MultiEdit',
+      'Edit|Write',
       CLAUDE_PROJECT_HOOK,
       SYSTEM_MESSAGE_NOTICE,
     ),
@@ -155,7 +157,7 @@ export function buildClaudeSettingsManifest() {
 export function buildClaudePluginHooksManifest() {
   return {
     hooks: buildClaudeCompatibleHooks(
-      'Edit|Write|MultiEdit',
+      'Edit|Write',
       CLAUDE_PLUGIN_HOOK,
       SYSTEM_MESSAGE_NOTICE,
     ),

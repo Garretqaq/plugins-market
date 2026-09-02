@@ -526,6 +526,12 @@ export const PROVIDER_PLACEHOLDERS = {
     ask_instruction: 'Ask the user directly to clarify what you cannot infer.',
     command_prefix: '/'
   },
+  veto: {
+    model: 'the selected model',
+    config_file: '~/.veto/config.json',
+    ask_instruction: 'Ask the user directly to clarify what you cannot infer.',
+    command_prefix: '/',
+  },
   'vibe': {
     model: 'Mistral',
     config_file: 'AGENTS.md',
@@ -574,6 +580,7 @@ export const PROVIDER_BLOCK_TAGS = new Set([
   'trae',
   'trae-cn',
   'vibe',
+  'veto',
 ]);
 
 /**
@@ -780,6 +787,9 @@ export function generateYamlFrontmatter(data) {
           lines.push(`  - ${formatYamlScalar(item)}`);
         }
       }
+    } else if (value && typeof value === 'object') {
+      lines.push(`${key}:`);
+      appendYamlObject(lines, value, 2);
     } else if (typeof value === 'boolean') {
       lines.push(`${key}: ${value}`);
     } else {

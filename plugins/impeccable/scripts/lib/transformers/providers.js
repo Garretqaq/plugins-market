@@ -48,6 +48,9 @@ export const PROVIDERS = {
     configDir: '.codex',
     displayName: 'Codex',
     frontmatterFields: [],
+    // Codex's validator rejects unknown top-level keys. Version remains
+    // available to Impeccable's updater under the spec-defined metadata map.
+    versionInMetadata: true,
     writeOpenAIMetadata: true,
     // No agentFormat: the Codex subagent ships nested inside the skill's own
     // agents/ folder (see CODEX_SKILL_PROVIDERS in factory.js), which Codex
@@ -63,6 +66,7 @@ export const PROVIDERS = {
     displayName: 'Codex Repo Skills',
     placeholderProvider: 'codex',
     frontmatterFields: [],
+    versionInMetadata: true,
     writeOpenAIMetadata: true,
   },
   github: {
@@ -137,6 +141,13 @@ export const PROVIDERS = {
     configDir: '.vibe',
     displayName: 'Mistral Vibe',
     frontmatterFields: ['user-invocable', 'license', 'compatibility', 'metadata', 'allowed-tools'],
+  },
+  veto: {
+    provider: 'veto',
+    providerTags: ['veto'],
+    configDir: '.veto',
+    displayName: 'Veto',
+    frontmatterFields: ['license', 'compatibility', 'metadata'],
   },
   grok: {
     provider: 'grok',

@@ -1060,6 +1060,27 @@ describe('context.mjs CLI', () => {
     assert.match(res.stdout, /detect\.mjs --json <changed targets>/);
   });
 
+  it('drains stdout before exit when the parent pipe is paused', async () => {
+    const MARKER = 'END_MARKER_573';
+    write('PRODUCT.md', `# Acme\n\n${'x'.repeat(256 * 1024)}\n\n${MARKER}\n`);
+    const child = spawn(process.execPath, [SCRIPT_PATH], {
+      cwd: scratch,
+      env: { ...process.env, IMPECCABLE_NO_UPDATE_CHECK: '1', IMPECCABLE_NO_STALENESS_CHECK: '1' },
+    });
+    let stdout = '';
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stdout.pause();
+    const resume = setTimeout(() => child.stdout.resume(), 100);
+    const status = await new Promise((resolve, reject) => {
+      child.on('error', reject);
+      child.on('close', resolve);
+    });
+    clearTimeout(resume);
+    assert.equal(status, 0);
+    assert.match(stdout, /END_MARKER_573/);
+    assert.match(stdout, /RESOLVED_CONTEXT:/);
+  });
+
   // The build-path preference rides the unified config beside hook and
   // detector settings. The local file wins because whether a machine can
   // generate images is a property of that machine, not of the committed
@@ -1444,11 +1465,11 @@ describe('context.mjs update check', () => {
 
   const cachePath = () => path.join(scratch, 'update-check.json');
 
-  function setup(cacheObj, { disable = false, host } = {}) {
+  function setup(cacheObj, { disable = false, host, skillFrontmatter } = {}) {
     const skillScript = stageContextBundle(path.join(scratch, 'skill', 'scripts'));
     fs.writeFileSync(
       path.join(scratch, 'skill', 'SKILL.md'),
-      `---\nname: impeccable\nversion: ${LOCAL_VERSION}\n---\n\nbody\n`,
+      `---\n${skillFrontmatter || `name: impeccable\nversion: ${LOCAL_VERSION}`}\n---\n\nbody\n`,
     );
     fs.writeFileSync(cachePath(), JSON.stringify(cacheObj));
     const project = path.join(scratch, 'project');
@@ -1499,6 +1520,22 @@ describe('context.mjs update check', () => {
     assert.match(res.stdout, /npx impeccable update/);
     // It must come after the real context, never replace it.
     assert.match(res.stdout, /^# PRODUCT\.md/);
+  });
+
+  it('reads metadata.version and prefers it over the legacy top-level key', () => {
+    const metadataOnly = run(
+      { lastCheck: Date.now(), latestVersion: '2.0.0' },
+      { skillFrontmatter: `name: impeccable\nmetadata:\n  version: ${LOCAL_VERSION}` },
+    );
+    assert.equal(metadataOnly.status, 0);
+    assert.match(metadataOnly.stdout, /installed v1\.0\.0, latest v2\.0\.0/);
+
+    const both = run(
+      { lastCheck: Date.now(), latestVersion: '2.0.0' },
+      { skillFrontmatter: `name: impeccable\nversion: 9.0.0\nmetadata:\n  version: ${LOCAL_VERSION}` },
+    );
+    assert.equal(both.status, 0);
+    assert.match(both.stdout, /installed v1\.0\.0, latest v2\.0\.0/);
   });
 
   // The directive used to say "ask once" and "if they agree, run it" while also
@@ -1587,5 +1624,40 @@ describe('context.mjs update check', () => {
     const cache = readCache();
     assert.equal(typeof cache.lastCheck, 'number'); // stamped so we don't re-poll every boot
     assert.equal(cache.latestVersion, undefined); // nothing learned
+  });
+
+  // Targeted live-fetch boot: the Windows abort in issue #573 fired after
+  // stdout was already complete, so the contract is exit 0 with the full
+  // context still on stdout.
+  it('exits 0 after a targeted live-fetch boot writes full context', async () => {
+    const { srv, host } = await startStub({ skills: '2.0.0' });
+    try {
+      const { skillScript, project, env } = setup({}, { host });
+      fs.writeFileSync(
+        path.join(project, 'package.json'),
+        JSON.stringify({ private: true, workspaces: ['packages/*'] }),
+      );
+      const jervPi = path.join(project, 'packages', 'jerv-pi');
+      fs.mkdirSync(jervPi, { recursive: true });
+      fs.writeFileSync(path.join(jervPi, 'PRODUCT.md'), '# Jerv Pi product\n');
+
+      const result = await new Promise((resolveRun, rejectRun) => {
+        const child = spawn(process.execPath, [skillScript, '--target', 'packages/jerv-pi'], {
+          cwd: project,
+          env,
+        });
+        let stdout = '';
+        child.stdout.on('data', (chunk) => { stdout += chunk; });
+        child.on('error', rejectRun);
+        child.on('close', (status) => resolveRun({ status, stdout }));
+      });
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /RESOLVED_CONTEXT:/);
+      assert.match(result.stdout, /# Jerv Pi product/);
+      assert.match(result.stdout, /UPDATE_AVAILABLE/);
+    } finally {
+      srv.close();
+    }
   });
 });
