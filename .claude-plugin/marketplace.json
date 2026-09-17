@@ -230,27 +230,6 @@
       "origin": "https://github.com/laolaoshiren/claude-code-skills-zh"
     },
     {
-      "name": "ecc",
-      "source": "./plugins/ecc",
-      "description": "Harness-native ECC plugin for engineering teams - 68 agents, 286 skills, 94 legacy command shims, reusable hooks, rules, MCP conventions, and operator workflows for Claude Code plus adjacent agent harnesses",
-      "tags": [
-        "claude-code",
-        "agents",
-        "skills",
-        "hooks",
-        "rules",
-        "tdd",
-        "code-review",
-        "security",
-        "workflow",
-        "automation",
-        "best-practices"
-      ],
-      "version": "2.2.1",
-      "origin": "https://github.com/affaan-m/ECC",
-      "sourceHash": "c31300c7623595a8662843d32cfd5085d297601e"
-    },
-    {
       "name": "calling-deliver-operate",
       "source": "./plugins/calling-deliver-operate",
       "description": "Use when an AI/MCP client needs to call deliver-operate APIs (order queries, etc.) on behalf of a user and must first obtain authorization — covers the device-auth flow to get an ait_ token and the order query API.",
