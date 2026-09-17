@@ -59,15 +59,6 @@
       "sourceHash": "5c5d817a09c3ac2cbad66c0d09db3fce3455a440"
     },
     {
-      "name": "impeccable",
-      "source": "./plugins/impeccable",
-      "description": "Design fluency for frontend development. 1 skill with 23 commands (/impeccable polish, /impeccable audit, /impeccable critique, etc.) and curated anti-pattern detection.",
-      "tags": [],
-      "version": "4.1.4",
-      "origin": "pbakaus/impeccable",
-      "sourceHash": "5a3410e307e500968a91d4cb2936ab08d2a60aa5"
-    },
-    {
       "name": "zh-readme",
       "source": "./plugins/zh-readme",
       "description": "中文 README 生成器 - 先分析项目，再生成面向中文开发者的高质量 README",
